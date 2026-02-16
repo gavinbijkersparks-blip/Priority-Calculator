@@ -1,0 +1,175 @@
+:root {
+  color: #172b4d;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+}
+
+.panel {
+  padding: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 4px 0 16px;
+  color: #44546f;
+}
+
+.score-card {
+  border: 1px solid #dfe1e6;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8f9fb;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-value {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.priority-pill,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.priority-high {
+  background: #ffe5e0;
+  color: #ae2e24;
+  border-color: #ffbdad;
+}
+
+.priority-medium {
+  background: #fff7d6;
+  color: #7f5f01;
+  border-color: #f5cd47;
+}
+
+.priority-low {
+  background: #dcfff1;
+  color: #216e4e;
+  border-color: #7ee2b8;
+}
+
+.formula {
+  margin-top: 8px;
+  color: #44546f;
+}
+
+.fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+select {
+  height: 40px;
+  border: 1px solid #8590a2;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 16px;
+  background: white;
+}
+
+.presets {
+  margin-top: 12px;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.preset-row,
+.actions,
+.save-status {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actions {
+  margin-top: 12px;
+}
+
+.logs-button-wrap {
+  margin-left: auto;
+}
+
+.save-status {
+  margin-top: 12px;
+  align-items: center;
+}
+
+.status-saved {
+  background: #dcfff1;
+  color: #216e4e;
+  border-color: #7ee2b8;
+}
+
+.status-pending {
+  background: #fff7d6;
+  color: #7f5f01;
+  border-color: #f5cd47;
+}
+
+.status-error {
+  background: #ffe5e0;
+  color: #ae2e24;
+  border-color: #ffbdad;
+}
+
+.error-box {
+  margin-top: 10px;
+  border: 1px solid #ffbdad;
+  background: #ffeceb;
+  color: #5d1f1a;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.muted {
+  color: #44546f;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .fields-row {
+    grid-template-columns: 1fr;
+  }
+
+  .logs-button-wrap {
+    margin-left: 0;
+  }
+}

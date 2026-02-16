@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+node_modules.bak.*/
+
+# Forge
+.forge/
+.tunnel/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/

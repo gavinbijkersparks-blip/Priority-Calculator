@@ -1,0 +1,42 @@
+{
+  "name": "jira-risk-score-calculator",
+  "version": "1.0.0",
+  "description": "Risk Score Calculator for Jira - Impact x Likelihood",
+  "main": "src/index.js",
+  "scripts": {
+    "build:ui": "vite build --config vite.issue-panel.config.js && vite build --config vite.issue-log-modal.config.js && vite build --config vite.admin.config.js",
+    "build": "npm run build:ui && forge build",
+    "deploy": "npm run build:ui && forge deploy",
+    "forge:install": "forge install",
+    "tunnel": "forge tunnel"
+  },
+  "keywords": [
+    "jira",
+    "risk",
+    "impact",
+    "likelihood",
+    "prioritization",
+    "forge"
+  ],
+  "author": "Monrow",
+  "license": "MIT",
+  "dependencies": {
+    "@atlaskit/button": "^23.9.6",
+    "@atlaskit/css-reset": "^7.3.12",
+    "@atlaskit/primitives": "^18.0.0",
+    "@atlaskit/tokens": "^11.0.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@forge/api": "^7.0.1",
+    "@forge/bridge": "^5.12.0",
+    "@forge/react": "^11.11.0",
+    "@forge/resolver": "^1.7.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@forge/cli": "^12.14.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "vite": "^7.3.1"
+  }
+}
