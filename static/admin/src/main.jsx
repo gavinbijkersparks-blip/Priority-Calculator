@@ -276,6 +276,14 @@ const normalizeScaleOption = (option) => ({
   }
 });
 
+const getDerivedDefaultLabel = (option) => {
+  const english = String(option?.labels?.en || '').trim();
+  if (english) return english;
+  const dutch = String(option?.labels?.nl || '').trim();
+  if (dutch) return dutch;
+  return String(option?.labelDefault || '').trim();
+};
+
 function Banner({ type, text }) {
   if (!text) return null;
   return <div className={`banner ${type}`}>{text}</div>;
@@ -638,7 +646,7 @@ function App() {
       const payload = {
         impactOptions: impactScaleOptions.map((item) => ({
           value: Number(item.value),
-          labelDefault: String(item.labelDefault || '').trim(),
+          labelDefault: getDerivedDefaultLabel(item),
           labels: {
             en: String(item?.labels?.en || '').trim(),
             nl: String(item?.labels?.nl || '').trim()
@@ -646,7 +654,7 @@ function App() {
         })),
         likelihoodOptions: likelihoodScaleOptions.map((item) => ({
           value: Number(item.value),
-          labelDefault: String(item.labelDefault || '').trim(),
+          labelDefault: getDerivedDefaultLabel(item),
           labels: {
             en: String(item?.labels?.en || '').trim(),
             nl: String(item?.labels?.nl || '').trim()
@@ -960,11 +968,10 @@ function App() {
                         <span className="scale-field-label">{strings.defaultLabel}</span>
                       <input
                         type="text"
-                        className="scale-input label"
-                        value={item.labelDefault}
-                        onChange={(event) =>
-                          updateScaleOption(setImpactScaleOptions, index, 'labelDefault', event.target.value)
-                        }
+                        className="scale-input label readonly"
+                        value={getDerivedDefaultLabel(item)}
+                        readOnly
+                        aria-readonly="true"
                         placeholder={strings.defaultLabel}
                       />
                       </div>
@@ -1032,11 +1039,10 @@ function App() {
                         <span className="scale-field-label">{strings.defaultLabel}</span>
                       <input
                         type="text"
-                        className="scale-input label"
-                        value={item.labelDefault}
-                        onChange={(event) =>
-                          updateScaleOption(setLikelihoodScaleOptions, index, 'labelDefault', event.target.value)
-                        }
+                        className="scale-input label readonly"
+                        value={getDerivedDefaultLabel(item)}
+                        readOnly
+                        aria-readonly="true"
                         placeholder={strings.defaultLabel}
                       />
                       </div>

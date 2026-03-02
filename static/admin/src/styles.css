@@ -290,8 +290,8 @@ select {
 
 .scale-row {
   display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 6px;
+  grid-template-columns: minmax(160px, 0.8fr) minmax(240px, 1.2fr);
+  gap: 8px 12px;
   border: 1px solid #f0f1f3;
   background: #f7f8f9;
   border-radius: 8px;
@@ -302,6 +302,7 @@ select {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .scale-field-label {
@@ -316,14 +317,21 @@ select {
   border-radius: 6px;
   padding: 0 8px;
   background: #fff;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .scale-input.value {
-  width: 90px;
+  min-width: 0;
 }
 
 .scale-input.label {
   font-weight: 600;
+}
+
+.scale-input.readonly {
+  background: #f1f2f4;
+  color: #172b4d;
 }
 
 .scale-row-actions {
