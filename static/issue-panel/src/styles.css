@@ -82,6 +82,39 @@ body {
   margin-top: 12px;
 }
 
+.fields-row-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.score-input-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.score-input-block {
+  border: 1px solid #dfe1e6;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.inline-link {
+  border: 0;
+  background: transparent;
+  color: #0c66e4;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
 label {
   display: flex;
   flex-direction: column;
@@ -96,6 +129,16 @@ select {
   padding: 0 12px;
   font-size: 16px;
   background: white;
+}
+
+textarea {
+  border: 1px solid #8590a2;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: white;
+  resize: vertical;
+  min-height: 92px;
 }
 
 .presets {

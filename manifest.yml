@@ -1,36 +1,36 @@
 modules:
   jira:issueContext:
-    - key: risk-score-calculator-context
-      title: Risk Calculator
-      label: Risk Calculator
+    - key: prio-dash-ctx
+      title: Priority Dashboard
+      label: Priority Dashboard
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
-      resource: risk-score-issue-panel
+      resource: prio-issue-panel
       resolver:
-        function: risk-score-resolver
+        function: prio-dash-resolver
       displayConditions:
         entityPropertyEqualTo:
           entity: issueType
-          propertyKey: risk-score-calculator
+          propertyKey: priority-dashboard
           objectName: enabled
           value: "true"
 
   jira:adminPage:
-    - key: risk-score-admin-page
-      title: Risk Calculator Configuration
-      resource: risk-score-admin-page
+    - key: prio-dash-admin
+      title: Priority Dashboard Configuration
+      resource: prio-admin-page
       resolver:
-        function: risk-score-resolver
+        function: prio-dash-resolver
 
   function:
-    - key: risk-score-resolver
+    - key: prio-dash-resolver
       handler: index.handler
 
 resources:
-  - key: risk-score-issue-panel
+  - key: prio-issue-panel
     path: static/issue-panel/dist
-  - key: risk-log-modal
+  - key: prio-log-modal
     path: static/issue-log-modal/dist
-  - key: risk-score-admin-page
+  - key: prio-admin-page
     path: static/admin/dist
 
 permissions:
@@ -42,6 +42,6 @@ permissions:
     - storage:app
 
 app:
-  id: ari:cloud:ecosystem::app/2920ca05-80a1-4c77-ace4-19174c391284
+  id: ari:cloud:ecosystem::app/95921ecb-4006-4512-8026-7ce5adbdcafc
   runtime:
     name: nodejs20.x

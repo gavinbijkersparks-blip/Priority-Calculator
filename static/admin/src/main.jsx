@@ -7,90 +7,53 @@ import './styles.css';
 
 const I18N = {
   en: {
-    title: 'Risk Calculator Configuration',
+    title: 'Priority Dashboard Configuration',
     loadError: 'Load error',
     saveError: 'Save error',
     fieldMappingTitle: 'Field Mapping',
-    fieldMappingSubtitle: 'Map the calculator to your Jira number fields. The app writes values by field ID.',
+    fieldMappingSubtitle: 'Map the dashboard to Jira fields. Score fields must be number fields, explanation fields must be text fields.',
     loadingFields: 'Loading fields and mapping…',
-    impactField: 'Impact field',
-    likelihoodField: 'Likelihood field',
-    riskScoreField: 'Risk Score field',
     selectField: 'Select field',
     saveFieldMapping: 'Save field mapping',
     savingMapping: 'Saving mapping…',
     refreshFields: 'Refresh fields',
-    currentFieldSetup: 'Current field setup',
-    notSelected: 'Not selected',
-    impactHelp: 'This field stores how big the effect is when the risk happens.',
-    likelihoodHelp: 'This field stores how likely it is that the risk happens.',
-    riskScoreHelp: 'This field stores the calculated result: Impact x Likelihood.',
-    technicalDetails: 'Technical field IDs (for Jira admin/support)',
-    impactId: 'Impact ID',
-    likelihoodId: 'Likelihood ID',
-    riskScoreId: 'Risk Score ID',
+    verifyMapping: 'Verify mapping',
+    verifyMappingSuccess: 'Mapping is valid.',
+    verifyMappingFailed: 'Mapping verification failed.',
     fieldMappingSaved: 'Field mapping saved.',
     fieldMappingSaveFailed: 'Failed to save field mapping.',
     loadFieldsFailed: 'Failed to load available fields.',
     loadMappingFailed: 'Failed to load field mapping.',
+    duplicateFieldNamesWarning: 'Warning: duplicate field names detected. Map by field ID, not by name.',
+    currentFieldSetup: 'Current field setup',
+    technicalDetails: 'Technical field IDs (for Jira admin/support)',
+    notSelected: 'Not selected',
+
+    benefitScoreField: 'Opbrengst score field',
+    urgencyScoreField: 'Urgentie score field',
+    ambitionScoreField: 'Ambitie score field',
+    totalScoreField: 'Totaal score field',
+    benefitExplanationField: 'Opbrengst toelichting field',
+    urgencyExplanationField: 'Urgentie toelichting field',
+    ambitionExplanationField: 'Ambitie toelichting field',
+
     defaultFieldSetupTitle: 'Default Field Setup',
-    defaultFieldSetupSubtitle: 'Create app-managed default fields and automatically map them. Optional if you map existing fields.',
+    defaultFieldSetupSubtitle: 'Create app-managed default fields and map them automatically.',
     preparingFields: 'Preparing fields…',
     createDefaultFields: 'Create default fields and map them',
     defaultFieldsCreated: 'Default fields ready',
     defaultFieldsCreatedCount: 'created',
     defaultFieldsReused: 'Default fields ready (reused existing managed fields).',
     defaultFieldsCreatedAndMapped: 'Default fields created and mapped',
-    visibilityTitle: 'Visibility Configuration',
-    visibilitySubtitle: 'Choose issue types where Risk Calculator should be visible in the issue sidebar.',
-    issueTypesSelected: 'issue types selected',
-    of: 'of',
-    lastConfigured: 'Last configured',
-    notAvailable: 'not available',
-    loadingIssueTypes: 'Loading issue types…',
-    enabledIssueTypes: 'Enabled Issue Types',
-    availableIssueTypes: 'Available Issue Types',
-    removeAll: 'Remove all',
-    addAll: 'Add all',
-    noEnabledIssueTypes: 'No enabled issue types',
-    noAvailableIssueTypes: 'No available issue types',
-    saveConfiguration: 'Save configuration',
-    savingConfiguration: 'Saving configuration…',
-    enabledFor: 'Enabled for',
-    none: 'none',
-    configurationSavedHidden: 'Configuration saved. Risk Calculator is hidden for all issue types.',
-    configurationSavedEnabled: 'Configuration saved. Risk Calculator is enabled for',
-    issueTypeCountSuffix: 'issue type(s).',
-    visibilitySaveFailed: 'Failed to save visibility configuration.',
-    calculationLogTitle: 'Calculation Log',
-    calculationLogSubtitle: 'Show who calculated risk score, for which issue, and with what values.',
-    showCalculationLog: 'Show calculation log',
-    loadingLogs: 'Loading logs…',
-    noLogsLoaded: 'No calculation logs loaded yet.',
-    logsLoadFailed: 'Failed to load calculation logs.',
-    time: 'Time',
-    issue: 'Issue',
-    impact: 'Impact',
-    likelihood: 'Likelihood',
-    score: 'Score',
-    priority: 'Priority',
-    by: 'By',
-    origin: 'Origin',
-    unknown: 'Unknown',
-    clickToRemove: 'Click to remove',
-    clickToAdd: 'Click to add',
-    high: 'HIGH',
-    medium: 'MEDIUM',
-    low: 'LOW',
-    scaleOptionsTitle: 'Scale Options',
-    scaleOptionsSubtitle: 'Set default values and labels for Impact and Likelihood dropdowns. Values are used for calculation.',
+
+    scaleOptionsTitle: 'Score Scale Options',
+    scaleOptionsSubtitle: 'Configure the shared score options used for opbrengst, urgentie and ambitie.',
     loadingScaleConfig: 'Loading scale options…',
     scaleConfigSaved: 'Scale options saved.',
     scaleConfigSaveFailed: 'Failed to save scale options.',
     resetScaleOptions: 'Reset to app defaults',
     resetScaleOptionsDone: 'Scale options reset to app defaults.',
-    impactOptions: 'Impact options',
-    likelihoodOptions: 'Likelihood options',
+    scoreOptions: 'Score options',
     value: 'Value',
     defaultLabel: 'Default label',
     englishLabel: 'English label (optional)',
@@ -101,113 +64,97 @@ const I18N = {
     moveDown: 'Down',
     saveScaleOptions: 'Save scale options',
     savingScaleOptions: 'Saving scale options…',
-    lastUpdated: 'Last updated',
-    byUser: 'By',
-    system: 'System',
-    scaleInUseHint: 'Tip: if a value is already used in issues, keep it in the list to avoid confusion.',
-    duplicateFieldNamesWarning: 'Warning: duplicate field names detected. Map by field ID, not by name.',
-    verifyMapping: 'Verify mapping',
-    verifyMappingSuccess: 'Mapping is valid and writable number fields are selected.',
-    verifyMappingFailed: 'Mapping verification failed.',
-    legacySummaryTitle: 'Legacy values cleanup',
-    legacySummarySubtitle: 'Find and migrate issue values that are no longer in the current option configuration.',
-    scanLegacyValues: 'Scan legacy values',
-    scanningLegacyValues: 'Scanning…',
-    migrateLegacyValues: 'Migrate legacy values',
-    migratingLegacyValues: 'Migrating…',
-    legacyNoIssues: 'No legacy values found in scanned issues.',
-    legacyFound: 'Legacy values found',
-    legacyScanned: 'Scanned',
-    legacyIssues: 'Legacy issues',
-    migrationDone: 'Migration completed.',
-    migrationFailed: 'Migration failed.',
-    migrationNote: 'Migration sets non-configured values to the minimum configured value per field.'
+
+    thresholdTitle: 'MoSCoW Thresholds',
+    thresholdSubtitle: 'Set thresholds for Must, Should and Could. Values below Could become Won\'t.',
+    mustThreshold: 'Must threshold',
+    shouldThreshold: 'Should threshold',
+    couldThreshold: 'Could threshold',
+    saveThresholds: 'Save thresholds',
+    savingThresholds: 'Saving thresholds…',
+    resetThresholds: 'Reset thresholds',
+    thresholdSaved: 'Thresholds saved.',
+    thresholdSaveFailed: 'Failed to save thresholds.',
+
+    visibilityTitle: 'Visibility Configuration',
+    visibilitySubtitle: 'Choose issue types where Priority Dashboard should be visible in the issue sidebar.',
+    loadingIssueTypes: 'Loading issue types…',
+    saveConfiguration: 'Save configuration',
+    savingConfiguration: 'Saving configuration…',
+    configurationSavedHidden: 'Configuration saved. Priority Dashboard is hidden for all issue types.',
+    configurationSavedEnabled: 'Configuration saved. Priority Dashboard is enabled for',
+    issueTypeCountSuffix: 'issue type(s).',
+    visibilitySaveFailed: 'Failed to save visibility configuration.',
+
+    calculationLogTitle: 'Calculation Log',
+    calculationLogSubtitle: 'Show who calculated priority score, for which issue, and with what values.',
+    showCalculationLog: 'Show calculation log',
+    loadingLogs: 'Loading logs…',
+    noLogsLoaded: 'No calculation logs loaded yet.',
+    logsLoadFailed: 'Failed to load calculation logs.',
+    time: 'Time',
+    issue: 'Issue',
+    benefit: 'Opbrengst',
+    urgency: 'Urgentie',
+    ambition: 'Ambitie',
+    total: 'Totaal',
+    moscow: 'MoSCoW',
+    by: 'By',
+    origin: 'Origin',
+    unknown: 'Unknown',
+    must: 'Must',
+    should: 'Should',
+    could: 'Could',
+    wont: "Won't"
   },
   nl: {
-    title: 'Risico Calculator Configuratie',
+    title: 'Priority Dashboard Configuratie',
     loadError: 'Laadfout',
     saveError: 'Opslagfout',
     fieldMappingTitle: 'Veldkoppeling',
-    fieldMappingSubtitle: 'Koppel de calculator aan Jira-nummervelden. De app schrijft op basis van veld-ID.',
+    fieldMappingSubtitle: 'Koppel het dashboard aan Jira-velden. Scorevelden moeten nummervelden zijn, toelichtingsvelden tekstvelden.',
     loadingFields: 'Velden en koppeling laden…',
-    impactField: 'Impactveld',
-    likelihoodField: 'Waarschijnlijkheidsveld',
-    riskScoreField: 'Risicoscoreveld',
     selectField: 'Selecteer veld',
     saveFieldMapping: 'Veldkoppeling opslaan',
     savingMapping: 'Koppeling opslaan…',
     refreshFields: 'Velden verversen',
-    currentFieldSetup: 'Huidige veldconfiguratie',
-    notSelected: 'Niet geselecteerd',
-    impactHelp: 'Dit veld slaat op hoe groot het effect is als het risico optreedt.',
-    likelihoodHelp: 'Dit veld slaat op hoe waarschijnlijk het is dat het risico optreedt.',
-    riskScoreHelp: 'Dit veld slaat de berekende uitkomst op: Impact x Waarschijnlijkheid.',
-    technicalDetails: 'Technische veld-IDs (voor Jira beheer/support)',
-    impactId: 'Impact ID',
-    likelihoodId: 'Waarschijnlijkheid ID',
-    riskScoreId: 'Risicoscore ID',
+    verifyMapping: 'Koppeling valideren',
+    verifyMappingSuccess: 'Koppeling is geldig.',
+    verifyMappingFailed: 'Koppelingsvalidatie mislukt.',
     fieldMappingSaved: 'Veldkoppeling opgeslagen.',
     fieldMappingSaveFailed: 'Veldkoppeling opslaan mislukt.',
     loadFieldsFailed: 'Beschikbare velden konden niet worden geladen.',
     loadMappingFailed: 'Veldkoppeling kon niet worden geladen.',
+    duplicateFieldNamesWarning: 'Waarschuwing: dubbele veldnamen gedetecteerd. Koppel op veld-ID, niet op naam.',
+    currentFieldSetup: 'Huidige veldconfiguratie',
+    technicalDetails: 'Technische veld-IDs (voor Jira beheer/support)',
+    notSelected: 'Niet geselecteerd',
+
+    benefitScoreField: 'Opbrengst score veld',
+    urgencyScoreField: 'Urgentie score veld',
+    ambitionScoreField: 'Ambitie score veld',
+    totalScoreField: 'Totaal score veld',
+    benefitExplanationField: 'Opbrengst toelichting veld',
+    urgencyExplanationField: 'Urgentie toelichting veld',
+    ambitionExplanationField: 'Ambitie toelichting veld',
+
     defaultFieldSetupTitle: 'Standaard veldinstellingen',
-    defaultFieldSetupSubtitle: 'Maak standaard app-velden aan en koppel ze automatisch. Optioneel als je bestaande velden koppelt.',
+    defaultFieldSetupSubtitle: 'Maak standaard app-velden aan en koppel ze automatisch.',
     preparingFields: 'Velden voorbereiden…',
     createDefaultFields: 'Standaardvelden maken en koppelen',
     defaultFieldsCreated: 'Standaardvelden gereed',
     defaultFieldsCreatedCount: 'aangemaakt',
     defaultFieldsReused: 'Standaardvelden gereed (bestaande beheerde velden hergebruikt).',
     defaultFieldsCreatedAndMapped: 'Standaardvelden gemaakt en gekoppeld',
-    visibilityTitle: 'Zichtbaarheidsconfiguratie',
-    visibilitySubtitle: 'Kies work types waarvoor de Risico Calculator zichtbaar is in de issue-zijbalk.',
-    issueTypesSelected: 'work types geselecteerd',
-    of: 'van',
-    lastConfigured: 'Laatst geconfigureerd',
-    notAvailable: 'niet beschikbaar',
-    loadingIssueTypes: 'Work types laden…',
-    enabledIssueTypes: 'Ingeschakelde work types',
-    availableIssueTypes: 'Beschikbare work types',
-    removeAll: 'Alles verwijderen',
-    addAll: 'Alles toevoegen',
-    noEnabledIssueTypes: 'Geen ingeschakelde work types',
-    noAvailableIssueTypes: 'Geen beschikbare work types',
-    saveConfiguration: 'Configuratie opslaan',
-    savingConfiguration: 'Configuratie opslaan…',
-    enabledFor: 'Ingeschakeld voor',
-    none: 'geen',
-    configurationSavedHidden: 'Configuratie opgeslagen. Risico Calculator is verborgen voor alle work types.',
-    configurationSavedEnabled: 'Configuratie opgeslagen. Risico Calculator is ingeschakeld voor',
-    issueTypeCountSuffix: 'work type(s).',
-    visibilitySaveFailed: 'Zichtbaarheidsconfiguratie opslaan mislukt.',
-    calculationLogTitle: 'Berekeningslog',
-    calculationLogSubtitle: 'Toon wie de risicoscore heeft berekend, voor welk issue en met welke waarden.',
-    showCalculationLog: 'Berekeningslog tonen',
-    loadingLogs: 'Logs laden…',
-    noLogsLoaded: 'Nog geen berekeningslogs geladen.',
-    logsLoadFailed: 'Berekeningslogs konden niet worden geladen.',
-    time: 'Tijd',
-    issue: 'Issue',
-    impact: 'Impact',
-    likelihood: 'Waarschijnlijkheid',
-    score: 'Score',
-    priority: 'Prioriteit',
-    by: 'Door',
-    origin: 'Herkomst',
-    unknown: 'Onbekend',
-    clickToRemove: 'Klik om te verwijderen',
-    clickToAdd: 'Klik om toe te voegen',
-    high: 'HOOG',
-    medium: 'MIDDEL',
-    low: 'LAAG',
-    scaleOptionsTitle: 'Schaalopties',
-    scaleOptionsSubtitle: 'Stel standaardwaarden en labels in voor Impact- en Waarschijnlijkheid-dropdowns. Waarden worden gebruikt voor berekening.',
+
+    scaleOptionsTitle: 'Score-schaalopties',
+    scaleOptionsSubtitle: 'Configureer de gedeelde score-opties voor opbrengst, urgentie en ambitie.',
     loadingScaleConfig: 'Schaalopties laden…',
     scaleConfigSaved: 'Schaalopties opgeslagen.',
     scaleConfigSaveFailed: 'Schaalopties opslaan mislukt.',
     resetScaleOptions: 'Reset naar app-standaarden',
     resetScaleOptionsDone: 'Schaalopties zijn teruggezet naar app-standaarden.',
-    impactOptions: 'Impact-opties',
-    likelihoodOptions: 'Waarschijnlijkheidsopties',
+    scoreOptions: 'Score-opties',
     value: 'Waarde',
     defaultLabel: 'Standaardlabel',
     englishLabel: 'Engels label (optioneel)',
@@ -218,27 +165,48 @@ const I18N = {
     moveDown: 'Omlaag',
     saveScaleOptions: 'Schaalopties opslaan',
     savingScaleOptions: 'Schaalopties opslaan…',
-    lastUpdated: 'Laatst bijgewerkt',
-    byUser: 'Door',
-    system: 'Systeem',
-    scaleInUseHint: 'Tip: als een waarde al in issues gebruikt wordt, laat die in de lijst staan om verwarring te voorkomen.',
-    duplicateFieldNamesWarning: 'Waarschuwing: dubbele veldnamen gedetecteerd. Koppel op veld-ID, niet op naam.',
-    verifyMapping: 'Koppeling valideren',
-    verifyMappingSuccess: 'Koppeling is geldig en gebruikt beschrijfbare nummervelden.',
-    verifyMappingFailed: 'Koppelingsvalidatie mislukt.',
-    legacySummaryTitle: 'Opschonen oude waarden',
-    legacySummarySubtitle: 'Vind en migreer issue-waarden die niet meer in de huidige optieconfiguratie zitten.',
-    scanLegacyValues: 'Oude waarden scannen',
-    scanningLegacyValues: 'Scannen…',
-    migrateLegacyValues: 'Oude waarden migreren',
-    migratingLegacyValues: 'Migreren…',
-    legacyNoIssues: 'Geen oude waarden gevonden in gescande issues.',
-    legacyFound: 'Oude waarden gevonden',
-    legacyScanned: 'Gescand',
-    legacyIssues: 'Issues met oude waarden',
-    migrationDone: 'Migratie voltooid.',
-    migrationFailed: 'Migratie mislukt.',
-    migrationNote: 'Migratie zet niet-geconfigureerde waarden naar de laagste geconfigureerde waarde per veld.'
+
+    thresholdTitle: 'MoSCoW-drempels',
+    thresholdSubtitle: 'Stel drempels in voor Must, Should en Could. Onder Could wordt Won\'t.',
+    mustThreshold: 'Must drempel',
+    shouldThreshold: 'Should drempel',
+    couldThreshold: 'Could drempel',
+    saveThresholds: 'Drempels opslaan',
+    savingThresholds: 'Drempels opslaan…',
+    resetThresholds: 'Drempels resetten',
+    thresholdSaved: 'Drempels opgeslagen.',
+    thresholdSaveFailed: 'Drempels opslaan mislukt.',
+
+    visibilityTitle: 'Zichtbaarheidsconfiguratie',
+    visibilitySubtitle: 'Kies issue types waarvoor Priority Dashboard zichtbaar is in de issue-zijbalk.',
+    loadingIssueTypes: 'Issue types laden…',
+    saveConfiguration: 'Configuratie opslaan',
+    savingConfiguration: 'Configuratie opslaan…',
+    configurationSavedHidden: 'Configuratie opgeslagen. Priority Dashboard is verborgen voor alle issue types.',
+    configurationSavedEnabled: 'Configuratie opgeslagen. Priority Dashboard is ingeschakeld voor',
+    issueTypeCountSuffix: 'issue type(s).',
+    visibilitySaveFailed: 'Zichtbaarheidsconfiguratie opslaan mislukt.',
+
+    calculationLogTitle: 'Berekeningslog',
+    calculationLogSubtitle: 'Toon wie de prioriteit heeft berekend, voor welk issue en met welke waarden.',
+    showCalculationLog: 'Berekeningslog tonen',
+    loadingLogs: 'Logs laden…',
+    noLogsLoaded: 'Nog geen berekeningslogs geladen.',
+    logsLoadFailed: 'Berekeningslogs konden niet worden geladen.',
+    time: 'Tijd',
+    issue: 'Issue',
+    benefit: 'Opbrengst',
+    urgency: 'Urgentie',
+    ambition: 'Ambitie',
+    total: 'Totaal',
+    moscow: 'MoSCoW',
+    by: 'Door',
+    origin: 'Herkomst',
+    unknown: 'Onbekend',
+    must: 'Must',
+    should: 'Should',
+    could: 'Could',
+    wont: "Won't"
   }
 };
 
@@ -252,14 +220,29 @@ const formatTimestamp = (value, language) => {
   return date.toLocaleString(language === 'nl' ? 'nl-NL' : 'en-GB', { hour12: false });
 };
 
-const localizePriority = (value, language) => {
+const localizeMoscow = (value, language) => {
   const strings = I18N[language] || I18N.en;
-  const normalized = String(value || '').trim().toUpperCase();
-  if (normalized === 'HIGH') return strings.high;
-  if (normalized === 'MEDIUM') return strings.medium;
-  if (normalized === 'LOW') return strings.low;
+  const normalized = String(value || '').toUpperCase();
+  if (normalized === 'MUST') return strings.must;
+  if (normalized === 'SHOULD') return strings.should;
+  if (normalized === 'COULD') return strings.could;
+  if (normalized === 'WONT') return strings.wont;
   return value || '-';
 };
+
+const mappingLabels = {
+  BENEFIT_SCORE: 'benefitScoreField',
+  URGENCY_SCORE: 'urgencyScoreField',
+  AMBITION_SCORE: 'ambitionScoreField',
+  TOTAL_SCORE: 'totalScoreField',
+  BENEFIT_EXPLANATION: 'benefitExplanationField',
+  URGENCY_EXPLANATION: 'urgencyExplanationField',
+  AMBITION_EXPLANATION: 'ambitionExplanationField'
+};
+
+const scoreMappingKeys = ['BENEFIT_SCORE', 'URGENCY_SCORE', 'AMBITION_SCORE', 'TOTAL_SCORE'];
+const explanationMappingKeys = ['BENEFIT_EXPLANATION', 'URGENCY_EXPLANATION', 'AMBITION_EXPLANATION'];
+const allMappingKeys = [...scoreMappingKeys, ...explanationMappingKeys];
 
 const buildEmptyScaleOption = () => ({
   value: '',
@@ -301,143 +284,64 @@ function Section({ title, subtitle, children }) {
 
 function App() {
   const [language, setLanguage] = useState('en');
-  const [issueTypes, setIssueTypes] = useState([]);
-  const [selectedIssueTypeIds, setSelectedIssueTypeIds] = useState([]);
+  const strings = I18N[language] || I18N.en;
 
-  const [configLoading, setConfigLoading] = useState(true);
-  const [configSaving, setConfigSaving] = useState(false);
-  const [configMessage, setConfigMessage] = useState('');
-  const [configError, setConfigError] = useState('');
-  const [lastConfiguredAt, setLastConfiguredAt] = useState(null);
+  const [availableNumberFields, setAvailableNumberFields] = useState([]);
+  const [availableTextFields, setAvailableTextFields] = useState([]);
+  const [mapping, setMapping] = useState({});
+  const [fieldsLoading, setFieldsLoading] = useState(true);
+  const [fieldsSaving, setFieldsSaving] = useState(false);
+  const [fieldsMessage, setFieldsMessage] = useState('');
+  const [fieldsError, setFieldsError] = useState('');
+  const [mappingCheckLoading, setMappingCheckLoading] = useState(false);
 
   const [setupLoading, setSetupLoading] = useState(false);
   const [setupMessage, setSetupMessage] = useState('');
   const [setupError, setSetupError] = useState('');
   const [fieldIds, setFieldIds] = useState(null);
 
-  const [fieldsLoading, setFieldsLoading] = useState(true);
-  const [fieldsSaving, setFieldsSaving] = useState(false);
-  const [fieldsMessage, setFieldsMessage] = useState('');
-  const [fieldsError, setFieldsError] = useState('');
-  const [availableFields, setAvailableFields] = useState([]);
-  const [impactField, setImpactField] = useState('');
-  const [likelihoodField, setLikelihoodField] = useState('');
-  const [riskScoreField, setRiskScoreField] = useState('');
-  const [dragTarget, setDragTarget] = useState('');
-  const [logsLoading, setLogsLoading] = useState(false);
-  const [logsError, setLogsError] = useState('');
-  const [logs, setLogs] = useState([]);
   const [scaleLoading, setScaleLoading] = useState(true);
   const [scaleSaving, setScaleSaving] = useState(false);
   const [scaleMessage, setScaleMessage] = useState('');
   const [scaleError, setScaleError] = useState('');
-  const [impactScaleOptions, setImpactScaleOptions] = useState([]);
-  const [likelihoodScaleOptions, setLikelihoodScaleOptions] = useState([]);
-  const [scaleUpdatedAt, setScaleUpdatedAt] = useState(null);
-  const [scaleUpdatedBy, setScaleUpdatedBy] = useState('');
-  const [mappingCheckLoading, setMappingCheckLoading] = useState(false);
-  const [legacyScanLoading, setLegacyScanLoading] = useState(false);
-  const [legacyMigrateLoading, setLegacyMigrateLoading] = useState(false);
-  const [legacySummary, setLegacySummary] = useState(null);
-  const [legacySummaryError, setLegacySummaryError] = useState('');
-  const [migrationMessage, setMigrationMessage] = useState('');
-  const [migrationError, setMigrationError] = useState('');
-  const strings = I18N[language] || I18N.en;
+  const [scoreOptions, setScoreOptions] = useState([]);
 
-  const fieldsById = useMemo(
-    () => new Map(availableFields.map((field) => [String(field.id), field])),
-    [availableFields]
-  );
+  const [thresholdLoading, setThresholdLoading] = useState(true);
+  const [thresholdSaving, setThresholdSaving] = useState(false);
+  const [thresholdMessage, setThresholdMessage] = useState('');
+  const [thresholdError, setThresholdError] = useState('');
+  const [mustThreshold, setMustThreshold] = useState('30');
+  const [shouldThreshold, setShouldThreshold] = useState('20');
+  const [couldThreshold, setCouldThreshold] = useState('10');
+
+  const [issueTypes, setIssueTypes] = useState([]);
+  const [selectedIssueTypeIds, setSelectedIssueTypeIds] = useState([]);
+  const [configLoading, setConfigLoading] = useState(true);
+  const [configSaving, setConfigSaving] = useState(false);
+  const [configMessage, setConfigMessage] = useState('');
+  const [configError, setConfigError] = useState('');
+
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState('');
+  const [logs, setLogs] = useState([]);
+
+  const fieldsById = useMemo(() => {
+    const allFields = [...availableNumberFields, ...availableTextFields];
+    return new Map(allFields.map((field) => [String(field.id), field]));
+  }, [availableNumberFields, availableTextFields]);
 
   const hasDuplicateFieldNames = useMemo(() => {
+    const allFields = [...availableNumberFields, ...availableTextFields];
     const counts = new Map();
-    for (const field of availableFields) {
+    for (const field of allFields) {
       const name = String(field?.name || '');
       counts.set(name, (counts.get(name) || 0) + 1);
     }
     return [...counts.values()].some((count) => count > 1);
-  }, [availableFields]);
-
-  const selectedTypeNames = useMemo(() => {
-    if (selectedIssueTypeIds.length === 0) return [];
-    const byId = new Map(issueTypes.map((type) => [type.id, type.name]));
-    return selectedIssueTypeIds.map((id) => byId.get(id)).filter(Boolean);
-  }, [issueTypes, selectedIssueTypeIds]);
-
-  const selectedIssueTypes = useMemo(
-    () => issueTypes.filter((type) => selectedIssueTypeIds.includes(type.id)),
-    [issueTypes, selectedIssueTypeIds]
-  );
-
-  const availableIssueTypes = useMemo(
-    () => issueTypes.filter((type) => !selectedIssueTypeIds.includes(type.id)),
-    [issueTypes, selectedIssueTypeIds]
-  );
-
-  const loadFieldMapping = async () => {
-    setFieldsLoading(true);
-    setFieldsMessage('');
-    setFieldsError('');
-
-    try {
-      const [fieldsResult, mappingResult] = await Promise.all([
-        invoke('getRiskFields'),
-        invoke('getRiskMapping')
-      ]);
-
-      if (!fieldsResult?.success) {
-        throw new Error(fieldsResult?.error || strings.loadFieldsFailed);
-      }
-      if (!mappingResult?.success) {
-        throw new Error(mappingResult?.error || strings.loadMappingFailed);
-      }
-
-      const fields = fieldsResult.fields || [];
-      const mapping = mappingResult.mapping || {};
-
-      setAvailableFields(fields);
-      setImpactField(mapping.IMPACT ? String(mapping.IMPACT) : '');
-      setLikelihoodField(mapping.LIKELIHOOD ? String(mapping.LIKELIHOOD) : '');
-      setRiskScoreField(mapping.RISK_SCORE ? String(mapping.RISK_SCORE) : '');
-    } catch (error) {
-      setFieldsError(`${strings.loadError}: ${error.message}`);
-    } finally {
-      setFieldsLoading(false);
-    }
-  };
-
-  const loadScaleConfig = async () => {
-    setScaleLoading(true);
-    setScaleMessage('');
-    setScaleError('');
-    try {
-      const result = await invoke('getRiskScaleConfig');
-      if (!result?.success) {
-        throw new Error(result?.error || strings.loadingScaleConfig);
-      }
-
-      const config = result.config || {};
-      setImpactScaleOptions(
-        Array.isArray(config.impactOptions)
-          ? config.impactOptions.map(normalizeScaleOption)
-          : []
-      );
-      setLikelihoodScaleOptions(
-        Array.isArray(config.likelihoodOptions)
-          ? config.likelihoodOptions.map(normalizeScaleOption)
-          : []
-      );
-      setScaleUpdatedAt(config.updatedAt || null);
-      setScaleUpdatedBy(String(config.updatedBy || ''));
-    } catch (error) {
-      setScaleError(`${strings.loadError}: ${error.message}`);
-    } finally {
-      setScaleLoading(false);
-    }
-  };
+  }, [availableNumberFields, availableTextFields]);
 
   useEffect(() => {
-    const initialize = async () => {
+    (async () => {
       try {
         const context = await view.getContext();
         const locale =
@@ -449,41 +353,102 @@ function App() {
       } catch (_error) {
         setLanguage('en');
       }
-    };
+    })();
+  }, []);
 
-    const loadConfig = async () => {
-      setConfigLoading(true);
-      setConfigMessage('');
-      setConfigError('');
+  const loadFieldMapping = async () => {
+    setFieldsLoading(true);
+    setFieldsMessage('');
+    setFieldsError('');
 
-      try {
-        const [typesResult, configResult] = await Promise.all([
-          invoke('getIssueTypes'),
-          invoke('getRiskConfig')
-        ]);
+    try {
+      const [fieldsResult, mappingResult] = await Promise.all([
+        invoke('getPriorityFields'),
+        invoke('getPriorityMapping')
+      ]);
 
-        if (!typesResult?.success) {
-          throw new Error(typesResult?.error || strings.loadingIssueTypes);
-        }
-        if (!configResult?.success) {
-          throw new Error(configResult?.error || strings.visibilitySaveFailed);
-        }
+      if (!fieldsResult?.success) throw new Error(fieldsResult?.error || strings.loadFieldsFailed);
+      if (!mappingResult?.success) throw new Error(mappingResult?.error || strings.loadMappingFailed);
 
-        setIssueTypes(typesResult.issueTypes || []);
-        setSelectedIssueTypeIds(configResult.enabledIssueTypeIds || []);
-        setLastConfiguredAt(configResult.updatedAt || null);
-      } catch (error) {
-        setConfigError(`${strings.loadError}: ${error.message}`);
-      } finally {
-        setConfigLoading(false);
+      setAvailableNumberFields(fieldsResult.numberFields || []);
+      setAvailableTextFields(fieldsResult.textFields || []);
+
+      const next = {};
+      for (const key of allMappingKeys) {
+        next[key] = mappingResult?.mapping?.[key] ? String(mappingResult.mapping[key]) : '';
       }
-    };
+      setMapping(next);
+    } catch (error) {
+      setFieldsError(`${strings.loadError}: ${error.message}`);
+    } finally {
+      setFieldsLoading(false);
+    }
+  };
 
-    initialize();
-    loadConfig();
+  const loadScaleConfig = async () => {
+    setScaleLoading(true);
+    setScaleMessage('');
+    setScaleError('');
+
+    try {
+      const result = await invoke('getPriorityScaleConfig');
+      if (!result?.success) throw new Error(result?.error || strings.loadingScaleConfig);
+      setScoreOptions((result.config?.scoreOptions || []).map(normalizeScaleOption));
+    } catch (error) {
+      setScaleError(`${strings.loadError}: ${error.message}`);
+    } finally {
+      setScaleLoading(false);
+    }
+  };
+
+  const loadThresholdConfig = async () => {
+    setThresholdLoading(true);
+    setThresholdMessage('');
+    setThresholdError('');
+
+    try {
+      const result = await invoke('getPriorityThresholdConfig');
+      if (!result?.success) throw new Error(result?.error || strings.thresholdSaveFailed);
+
+      setMustThreshold(String(result?.config?.must ?? 30));
+      setShouldThreshold(String(result?.config?.should ?? 20));
+      setCouldThreshold(String(result?.config?.could ?? 10));
+    } catch (error) {
+      setThresholdError(`${strings.loadError}: ${error.message}`);
+    } finally {
+      setThresholdLoading(false);
+    }
+  };
+
+  const loadVisibility = async () => {
+    setConfigLoading(true);
+    setConfigMessage('');
+    setConfigError('');
+
+    try {
+      const [typesResult, configResult] = await Promise.all([
+        invoke('getIssueTypes'),
+        invoke('getPriorityConfig')
+      ]);
+
+      if (!typesResult?.success) throw new Error(typesResult?.error || strings.loadingIssueTypes);
+      if (!configResult?.success) throw new Error(configResult?.error || strings.visibilitySaveFailed);
+
+      setIssueTypes(typesResult.issueTypes || []);
+      setSelectedIssueTypeIds(configResult.enabledIssueTypeIds || []);
+    } catch (error) {
+      setConfigError(`${strings.loadError}: ${error.message}`);
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadFieldMapping();
     loadScaleConfig();
-  }, [strings.loadError, strings.loadingIssueTypes, strings.visibilitySaveFailed, strings.loadFieldsFailed, strings.loadMappingFailed, strings.loadingScaleConfig]);
+    loadThresholdConfig();
+    loadVisibility();
+  }, []);
 
   const handleSaveFieldMapping = async () => {
     setFieldsSaving(true);
@@ -491,18 +456,11 @@ function App() {
     setFieldsError('');
 
     try {
-      const mapping = {
-        IMPACT: impactField,
-        LIKELIHOOD: likelihoodField,
-        RISK_SCORE: riskScoreField
-      };
-
-      const result = await invoke('saveRiskMapping', { mapping });
+      const result = await invoke('savePriorityMapping', { mapping });
       if (!result?.success) {
         setFieldsError(result?.error || strings.fieldMappingSaveFailed);
         return;
       }
-
       setFieldsMessage(strings.fieldMappingSaved);
     } catch (error) {
       setFieldsError(`${strings.saveError}: ${error.message}`);
@@ -516,7 +474,7 @@ function App() {
     setFieldsMessage('');
     setFieldsError('');
     try {
-      const result = await invoke('verifyRiskMapping');
+      const result = await invoke('verifyPriorityMapping');
       if (!result?.success) {
         setFieldsError(result?.error || strings.verifyMappingFailed);
         return;
@@ -536,7 +494,7 @@ function App() {
     setFieldIds(null);
 
     try {
-      const result = await invoke('setupFields');
+      const result = await invoke('setupPriorityFields');
       if (!result?.success) {
         setSetupError(result?.error || strings.defaultFieldSetupTitle);
         return;
@@ -557,13 +515,143 @@ function App() {
     }
   };
 
+  const updateScaleOption = (index, key, value) => {
+    setScoreOptions((current) =>
+      current.map((item, itemIndex) => {
+        if (itemIndex !== index) return item;
+        if (key === 'value') return { ...item, value };
+        if (key === 'labelDefault') return { ...item, labelDefault: value };
+        return { ...item, labels: { ...item.labels, [key]: value } };
+      })
+    );
+  };
+
+  const removeScaleOption = (index) => {
+    setScoreOptions((current) => current.filter((_item, itemIndex) => itemIndex !== index));
+  };
+
+  const moveScaleOption = (index, direction) => {
+    setScoreOptions((current) => {
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= current.length) return current;
+      const next = [...current];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+  };
+
+  const handleSaveScaleConfig = async () => {
+    setScaleSaving(true);
+    setScaleMessage('');
+    setScaleError('');
+
+    try {
+      const payload = {
+        scoreOptions: scoreOptions.map((item) => ({
+          value: Number(item.value),
+          labelDefault: getDerivedDefaultLabel(item),
+          labels: {
+            en: String(item?.labels?.en || '').trim(),
+            nl: String(item?.labels?.nl || '').trim()
+          }
+        }))
+      };
+
+      const result = await invoke('savePriorityScaleConfig', { config: payload });
+      if (!result?.success) {
+        setScaleError(result?.error || strings.scaleConfigSaveFailed);
+        return;
+      }
+
+      setScoreOptions((result.config?.scoreOptions || []).map(normalizeScaleOption));
+      setScaleMessage(strings.scaleConfigSaved);
+    } catch (error) {
+      setScaleError(`${strings.saveError}: ${error.message}`);
+    } finally {
+      setScaleSaving(false);
+    }
+  };
+
+  const handleResetScaleConfig = async () => {
+    setScaleSaving(true);
+    setScaleMessage('');
+    setScaleError('');
+
+    try {
+      const result = await invoke('resetPriorityScaleConfig');
+      if (!result?.success) {
+        setScaleError(result?.error || strings.scaleConfigSaveFailed);
+        return;
+      }
+
+      setScoreOptions((result.config?.scoreOptions || []).map(normalizeScaleOption));
+      setScaleMessage(strings.resetScaleOptionsDone);
+    } catch (error) {
+      setScaleError(`${strings.saveError}: ${error.message}`);
+    } finally {
+      setScaleSaving(false);
+    }
+  };
+
+  const handleSaveThresholds = async () => {
+    setThresholdSaving(true);
+    setThresholdMessage('');
+    setThresholdError('');
+
+    try {
+      const payload = {
+        must: Number(mustThreshold),
+        should: Number(shouldThreshold),
+        could: Number(couldThreshold)
+      };
+
+      const result = await invoke('savePriorityThresholdConfig', { config: payload });
+      if (!result?.success) {
+        setThresholdError(result?.error || strings.thresholdSaveFailed);
+        return;
+      }
+
+      setMustThreshold(String(result.config?.must ?? 30));
+      setShouldThreshold(String(result.config?.should ?? 20));
+      setCouldThreshold(String(result.config?.could ?? 10));
+      setThresholdMessage(strings.thresholdSaved);
+    } catch (error) {
+      setThresholdError(`${strings.saveError}: ${error.message}`);
+    } finally {
+      setThresholdSaving(false);
+    }
+  };
+
+  const handleResetThresholds = async () => {
+    setThresholdSaving(true);
+    setThresholdMessage('');
+    setThresholdError('');
+
+    try {
+      const result = await invoke('resetPriorityThresholdConfig');
+      if (!result?.success) {
+        setThresholdError(result?.error || strings.thresholdSaveFailed);
+        return;
+      }
+
+      setMustThreshold(String(result.config?.must ?? 30));
+      setShouldThreshold(String(result.config?.should ?? 20));
+      setCouldThreshold(String(result.config?.could ?? 10));
+      setThresholdMessage(strings.thresholdSaved);
+    } catch (error) {
+      setThresholdError(`${strings.saveError}: ${error.message}`);
+    } finally {
+      setThresholdSaving(false);
+    }
+  };
+
   const handleSaveConfig = async () => {
     setConfigSaving(true);
     setConfigMessage('');
     setConfigError('');
 
     try {
-      const result = await invoke('saveRiskConfig', {
+      const result = await invoke('savePriorityConfig', {
         enabledIssueTypeIds: selectedIssueTypeIds
       });
 
@@ -572,7 +660,6 @@ function App() {
         return;
       }
 
-      setLastConfiguredAt(result.updatedAt || new Date().toISOString());
       setConfigMessage(
         selectedIssueTypeIds.length === 0
           ? strings.configurationSavedHidden
@@ -589,7 +676,7 @@ function App() {
     setLogsLoading(true);
     setLogsError('');
     try {
-      const result = await invoke('getRiskLogs', { limit: 200 });
+      const result = await invoke('getPriorityLogs', { limit: 200 });
       if (!result?.success) {
         setLogsError(result?.error || strings.logsLoadFailed);
         return;
@@ -602,209 +689,11 @@ function App() {
     }
   };
 
-  const updateScaleOption = (setter, index, key, value) => {
-    setter((current) =>
-      current.map((item, itemIndex) => {
-        if (itemIndex !== index) return item;
-        if (key === 'value') {
-          return { ...item, value };
-        }
-        if (key === 'labelDefault') {
-          return { ...item, labelDefault: value };
-        }
-        return {
-          ...item,
-          labels: {
-            ...item.labels,
-            [key]: value
-          }
-        };
-      })
-    );
-  };
-
-  const removeScaleOption = (setter, index) => {
-    setter((current) => current.filter((_item, itemIndex) => itemIndex !== index));
-  };
-
-  const moveScaleOption = (setter, index, direction) => {
-    setter((current) => {
-      const nextIndex = index + direction;
-      if (nextIndex < 0 || nextIndex >= current.length) return current;
-      const next = [...current];
-      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
-      return next;
-    });
-  };
-
-  const handleSaveScaleConfig = async () => {
-    setScaleSaving(true);
-    setScaleMessage('');
-    setScaleError('');
-
-    try {
-      const payload = {
-        impactOptions: impactScaleOptions.map((item) => ({
-          value: Number(item.value),
-          labelDefault: getDerivedDefaultLabel(item),
-          labels: {
-            en: String(item?.labels?.en || '').trim(),
-            nl: String(item?.labels?.nl || '').trim()
-          }
-        })),
-        likelihoodOptions: likelihoodScaleOptions.map((item) => ({
-          value: Number(item.value),
-          labelDefault: getDerivedDefaultLabel(item),
-          labels: {
-            en: String(item?.labels?.en || '').trim(),
-            nl: String(item?.labels?.nl || '').trim()
-          }
-        }))
-      };
-
-      const result = await invoke('saveRiskScaleConfig', { config: payload });
-      if (!result?.success) {
-        setScaleError(result?.error || strings.scaleConfigSaveFailed);
-        return;
-      }
-
-      const config = result.config || {};
-      setImpactScaleOptions((config.impactOptions || []).map(normalizeScaleOption));
-      setLikelihoodScaleOptions((config.likelihoodOptions || []).map(normalizeScaleOption));
-      setScaleUpdatedAt(config.updatedAt || null);
-      setScaleUpdatedBy(String(config.updatedBy || ''));
-      setScaleMessage(strings.scaleConfigSaved);
-    } catch (error) {
-      setScaleError(`${strings.saveError}: ${error.message}`);
-    } finally {
-      setScaleSaving(false);
-    }
-  };
-
-  const handleResetScaleConfig = async () => {
-    setScaleSaving(true);
-    setScaleMessage('');
-    setScaleError('');
-
-    try {
-      const result = await invoke('resetRiskScaleConfig');
-      if (!result?.success) {
-        setScaleError(result?.error || strings.scaleConfigSaveFailed);
-        return;
-      }
-
-      const config = result.config || {};
-      setImpactScaleOptions((config.impactOptions || []).map(normalizeScaleOption));
-      setLikelihoodScaleOptions((config.likelihoodOptions || []).map(normalizeScaleOption));
-      setScaleUpdatedAt(config.updatedAt || null);
-      setScaleUpdatedBy(String(config.updatedBy || ''));
-      setScaleMessage(strings.resetScaleOptionsDone);
-    } catch (error) {
-      setScaleError(`${strings.saveError}: ${error.message}`);
-    } finally {
-      setScaleSaving(false);
-    }
-  };
-
-  const handleScanLegacyValues = async () => {
-    setLegacyScanLoading(true);
-    setLegacySummary(null);
-    setLegacySummaryError('');
-    setMigrationMessage('');
-    setMigrationError('');
-    try {
-      const result = await invoke('getLegacyRiskSummary', { limit: 300 });
-      if (!result?.success) {
-        setLegacySummaryError(result?.error || strings.migrationFailed);
-        return;
-      }
-      setLegacySummary(result);
-    } catch (error) {
-      setLegacySummaryError(`${strings.loadError}: ${error.message}`);
-    } finally {
-      setLegacyScanLoading(false);
-    }
-  };
-
-  const handleMigrateLegacyValues = async () => {
-    setLegacyMigrateLoading(true);
-    setMigrationMessage('');
-    setMigrationError('');
-    try {
-      const result = await invoke('migrateLegacyRiskValues', { limit: 300 });
-      if (!result?.success) {
-        setMigrationError(result?.error || strings.migrationFailed);
-        return;
-      }
-
-      setMigrationMessage(`${strings.migrationDone} ${result.updatedCount || 0}`);
-      await Promise.all([
-        handleScanLegacyValues(),
-        loadLogs()
-      ]);
-    } catch (error) {
-      setMigrationError(`${strings.saveError}: ${error.message}`);
-    } finally {
-      setLegacyMigrateLoading(false);
-    }
-  };
-
-  const addIssueType = (issueTypeId) => {
-    setSelectedIssueTypeIds((current) =>
-      current.includes(issueTypeId) ? current : [...current, issueTypeId]
-    );
-  };
-
-  const removeIssueType = (issueTypeId) => {
-    setSelectedIssueTypeIds((current) => current.filter((id) => id !== issueTypeId));
-  };
-
-  const handleDragStart = (event, issueTypeId, source) => {
-    event.dataTransfer.setData(
-      'text/plain',
-      JSON.stringify({ issueTypeId, source })
-    );
-    event.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (event, target) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    setDragTarget(target);
-  };
-
-  const handleDrop = (event, target) => {
-    event.preventDefault();
-    setDragTarget('');
-
-    try {
-      const payload = JSON.parse(event.dataTransfer.getData('text/plain'));
-      const issueTypeId = String(payload?.issueTypeId || '');
-      const source = String(payload?.source || '');
-      if (!issueTypeId || !source || source === target) return;
-
-      if (target === 'enabled') {
-        addIssueType(issueTypeId);
-      } else if (target === 'available') {
-        removeIssueType(issueTypeId);
-      }
-    } catch (_error) {
-      // Ignore invalid drag payloads.
-    }
-  };
-
-  const handleDragEnd = () => {
-    setDragTarget('');
-  };
-
   return (
     <div className="admin-page">
       <h2>{strings.title}</h2>
 
-      <Section
-        title={strings.fieldMappingTitle}
-        subtitle={strings.fieldMappingSubtitle}
-      >
+      <Section title={strings.fieldMappingTitle} subtitle={strings.fieldMappingSubtitle}>
         <Banner type="ok" text={fieldsMessage} />
         <Banner type="error" text={fieldsError} />
         {hasDuplicateFieldNames ? <Banner type="error" text={strings.duplicateFieldNamesWarning} /> : null}
@@ -813,57 +702,47 @@ function App() {
           <p className="muted">{strings.loadingFields}</p>
         ) : (
           <div className="field-grid">
-            <label>
-              <span>{strings.impactField}</span>
-              <select value={impactField} onChange={(event) => setImpactField(event.target.value)}>
-                <option value="">{strings.selectField}</option>
-                {availableFields.map((field) => (
-                  <option key={field.id} value={field.id}>
-                    {field.name} ({field.id})
-                  </option>
-                ))}
-              </select>
-            </label>
+            {scoreMappingKeys.map((key) => (
+              <label key={key}>
+                <span>{strings[mappingLabels[key]]}</span>
+                <select
+                  value={mapping[key] || ''}
+                  onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))}
+                >
+                  <option value="">{strings.selectField}</option>
+                  {availableNumberFields.map((field) => (
+                    <option key={field.id} value={field.id}>
+                      {field.name} ({field.id})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
 
-            <label>
-              <span>{strings.likelihoodField}</span>
-              <select value={likelihoodField} onChange={(event) => setLikelihoodField(event.target.value)}>
-                <option value="">{strings.selectField}</option>
-                {availableFields.map((field) => (
-                  <option key={field.id} value={field.id}>
-                    {field.name} ({field.id})
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              <span>{strings.riskScoreField}</span>
-              <select value={riskScoreField} onChange={(event) => setRiskScoreField(event.target.value)}>
-                <option value="">{strings.selectField}</option>
-                {availableFields.map((field) => (
-                  <option key={field.id} value={field.id}>
-                    {field.name} ({field.id})
-                  </option>
-                ))}
-              </select>
-            </label>
+            {explanationMappingKeys.map((key) => (
+              <label key={key}>
+                <span>{strings[mappingLabels[key]]}</span>
+                <select
+                  value={mapping[key] || ''}
+                  onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))}
+                >
+                  <option value="">{strings.selectField}</option>
+                  {availableTextFields.map((field) => (
+                    <option key={field.id} value={field.id}>
+                      {field.name} ({field.id})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
           </div>
         )}
 
         <div className="actions">
-          <Button
-            appearance="primary"
-            isDisabled={fieldsSaving || fieldsLoading}
-            onClick={handleSaveFieldMapping}
-          >
+          <Button appearance="primary" isDisabled={fieldsSaving || fieldsLoading} onClick={handleSaveFieldMapping}>
             {fieldsSaving ? strings.savingMapping : strings.saveFieldMapping}
           </Button>
-          <Button
-            appearance="subtle"
-            isDisabled={fieldsSaving || fieldsLoading || mappingCheckLoading}
-            onClick={handleVerifyMapping}
-          >
+          <Button appearance="subtle" isDisabled={fieldsSaving || fieldsLoading || mappingCheckLoading} onClick={handleVerifyMapping}>
             {strings.verifyMapping}
           </Button>
           <Button appearance="subtle" isDisabled={fieldsLoading} onClick={loadFieldMapping}>
@@ -873,43 +752,22 @@ function App() {
 
         <div className="mapping-summary">
           <div className="summary-title">{strings.currentFieldSetup}</div>
-          <div className="mapping-row">
-            <strong>{strings.impactField}:</strong> {fieldsById.get(impactField)?.name || strings.notSelected}
-            {fieldsById.get(impactField)?.id ? ` (${fieldsById.get(impactField)?.id})` : ''}
-          </div>
-          <div className="mapping-help">
-            {strings.impactHelp}
-          </div>
-
-          <div className="mapping-row">
-            <strong>{strings.likelihoodField}:</strong> {fieldsById.get(likelihoodField)?.name || strings.notSelected}
-            {fieldsById.get(likelihoodField)?.id ? ` (${fieldsById.get(likelihoodField)?.id})` : ''}
-          </div>
-          <div className="mapping-help">
-            {strings.likelihoodHelp}
-          </div>
-
-          <div className="mapping-row">
-            <strong>{strings.riskScoreField}:</strong> {fieldsById.get(riskScoreField)?.name || strings.notSelected}
-            {fieldsById.get(riskScoreField)?.id ? ` (${fieldsById.get(riskScoreField)?.id})` : ''}
-          </div>
-          <div className="mapping-help">
-            {strings.riskScoreHelp}
-          </div>
-
+          {allMappingKeys.map((key) => (
+            <div className="mapping-row" key={`summary-${key}`}>
+              <strong>{strings[mappingLabels[key]]}:</strong> {fieldsById.get(mapping[key])?.name || strings.notSelected}
+              {fieldsById.get(mapping[key])?.id ? ` (${fieldsById.get(mapping[key]).id})` : ''}
+            </div>
+          ))}
           <details className="tech-details">
             <summary>{strings.technicalDetails}</summary>
-            <div className="tech-row">{strings.impactId}: {impactField || strings.notSelected}</div>
-            <div className="tech-row">{strings.likelihoodId}: {likelihoodField || strings.notSelected}</div>
-            <div className="tech-row">{strings.riskScoreId}: {riskScoreField || strings.notSelected}</div>
+            {allMappingKeys.map((key) => (
+              <div className="tech-row" key={`tech-${key}`}>{key}: {mapping[key] || strings.notSelected}</div>
+            ))}
           </details>
         </div>
       </Section>
 
-      <Section
-        title={strings.defaultFieldSetupTitle}
-        subtitle={strings.defaultFieldSetupSubtitle}
-      >
+      <Section title={strings.defaultFieldSetupTitle} subtitle={strings.defaultFieldSetupSubtitle}>
         <Banner type="ok" text={setupMessage} />
         <Banner type="error" text={setupError} />
 
@@ -922,23 +780,16 @@ function App() {
         {fieldIds ? (
           <div className="mapping-summary">
             <div className="summary-title">{strings.defaultFieldsCreatedAndMapped}</div>
-            <div className="mapping-row">
-              <strong>{strings.impactId}:</strong> {String(fieldIds.IMPACT || '-')}
-            </div>
-            <div className="mapping-row">
-              <strong>{strings.likelihoodId}:</strong> {String(fieldIds.LIKELIHOOD || '-')}
-            </div>
-            <div className="mapping-row">
-              <strong>{strings.riskScoreId}:</strong> {String(fieldIds.RISK_SCORE || '-')}
-            </div>
+            {Object.entries(fieldIds).map(([key, value]) => (
+              <div className="mapping-row" key={`created-${key}`}>
+                <strong>{key}:</strong> {String(value || '-')}
+              </div>
+            ))}
           </div>
         ) : null}
       </Section>
 
-      <Section
-        title={strings.scaleOptionsTitle}
-        subtitle={strings.scaleOptionsSubtitle}
-      >
+      <Section title={strings.scaleOptionsTitle} subtitle={strings.scaleOptionsSubtitle}>
         <Banner type="ok" text={scaleMessage} />
         <Banner type="error" text={scaleError} />
 
@@ -946,26 +797,23 @@ function App() {
           <p className="muted">{strings.loadingScaleConfig}</p>
         ) : (
           <>
-            <div className="scale-columns">
-              <div className="scale-col">
-                <div className="summary-title">{strings.impactOptions}</div>
-                <div className="scale-list">
-                  {impactScaleOptions.map((item, index) => (
-                    <div className="scale-row" key={`impact-${index}`}>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.value}</span>
+            <div className="scale-col">
+              <div className="summary-title">{strings.scoreOptions}</div>
+              <div className="scale-list">
+                {scoreOptions.map((item, index) => (
+                  <div className="scale-row" key={`score-${index}`}>
+                    <div className="scale-field">
+                      <span className="scale-field-label">{strings.value}</span>
                       <input
                         type="number"
                         className="scale-input value"
                         value={item.value}
-                        onChange={(event) =>
-                          updateScaleOption(setImpactScaleOptions, index, 'value', event.target.value)
-                        }
+                        onChange={(event) => updateScaleOption(index, 'value', event.target.value)}
                         placeholder={strings.value}
                       />
-                      </div>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.defaultLabel}</span>
+                    </div>
+                    <div className="scale-field">
+                      <span className="scale-field-label">{strings.defaultLabel}</span>
                       <input
                         type="text"
                         className="scale-input label readonly"
@@ -974,127 +822,45 @@ function App() {
                         aria-readonly="true"
                         placeholder={strings.defaultLabel}
                       />
-                      </div>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.englishLabel}</span>
+                    </div>
+                    <div className="scale-field">
+                      <span className="scale-field-label">{strings.englishLabel}</span>
                       <input
                         type="text"
                         className="scale-input"
                         value={item.labels.en}
-                        onChange={(event) =>
-                          updateScaleOption(setImpactScaleOptions, index, 'en', event.target.value)
-                        }
+                        onChange={(event) => updateScaleOption(index, 'en', event.target.value)}
                         placeholder={strings.englishLabel}
                       />
-                      </div>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.dutchLabel}</span>
+                    </div>
+                    <div className="scale-field">
+                      <span className="scale-field-label">{strings.dutchLabel}</span>
                       <input
                         type="text"
                         className="scale-input"
                         value={item.labels.nl}
-                        onChange={(event) =>
-                          updateScaleOption(setImpactScaleOptions, index, 'nl', event.target.value)
-                        }
+                        onChange={(event) => updateScaleOption(index, 'nl', event.target.value)}
                         placeholder={strings.dutchLabel}
                       />
-                      </div>
-                      <div className="scale-row-actions">
-                        <button type="button" className="inline-link" onClick={() => moveScaleOption(setImpactScaleOptions, index, -1)}>
-                          {strings.moveUp}
-                        </button>
-                        <button type="button" className="inline-link" onClick={() => moveScaleOption(setImpactScaleOptions, index, 1)}>
-                          {strings.moveDown}
-                        </button>
-                        <button type="button" className="inline-link danger" onClick={() => removeScaleOption(setImpactScaleOptions, index)}>
-                          {strings.remove}
-                        </button>
-                      </div>
                     </div>
-                  ))}
-                </div>
-                <Button appearance="subtle" onClick={() => setImpactScaleOptions((current) => [...current, buildEmptyScaleOption()])}>
-                  {strings.addOption}
-                </Button>
-              </div>
-
-              <div className="scale-col">
-                <div className="summary-title">{strings.likelihoodOptions}</div>
-                <div className="scale-list">
-                  {likelihoodScaleOptions.map((item, index) => (
-                    <div className="scale-row" key={`likelihood-${index}`}>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.value}</span>
-                      <input
-                        type="number"
-                        className="scale-input value"
-                        value={item.value}
-                        onChange={(event) =>
-                          updateScaleOption(setLikelihoodScaleOptions, index, 'value', event.target.value)
-                        }
-                        placeholder={strings.value}
-                      />
-                      </div>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.defaultLabel}</span>
-                      <input
-                        type="text"
-                        className="scale-input label readonly"
-                        value={getDerivedDefaultLabel(item)}
-                        readOnly
-                        aria-readonly="true"
-                        placeholder={strings.defaultLabel}
-                      />
-                      </div>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.englishLabel}</span>
-                      <input
-                        type="text"
-                        className="scale-input"
-                        value={item.labels.en}
-                        onChange={(event) =>
-                          updateScaleOption(setLikelihoodScaleOptions, index, 'en', event.target.value)
-                        }
-                        placeholder={strings.englishLabel}
-                      />
-                      </div>
-                      <div className="scale-field">
-                        <span className="scale-field-label">{strings.dutchLabel}</span>
-                      <input
-                        type="text"
-                        className="scale-input"
-                        value={item.labels.nl}
-                        onChange={(event) =>
-                          updateScaleOption(setLikelihoodScaleOptions, index, 'nl', event.target.value)
-                        }
-                        placeholder={strings.dutchLabel}
-                      />
-                      </div>
-                      <div className="scale-row-actions">
-                        <button type="button" className="inline-link" onClick={() => moveScaleOption(setLikelihoodScaleOptions, index, -1)}>
-                          {strings.moveUp}
-                        </button>
-                        <button type="button" className="inline-link" onClick={() => moveScaleOption(setLikelihoodScaleOptions, index, 1)}>
-                          {strings.moveDown}
-                        </button>
-                        <button type="button" className="inline-link danger" onClick={() => removeScaleOption(setLikelihoodScaleOptions, index)}>
-                          {strings.remove}
-                        </button>
-                      </div>
+                    <div className="scale-row-actions">
+                      <button type="button" className="inline-link" onClick={() => moveScaleOption(index, -1)}>
+                        {strings.moveUp}
+                      </button>
+                      <button type="button" className="inline-link" onClick={() => moveScaleOption(index, 1)}>
+                        {strings.moveDown}
+                      </button>
+                      <button type="button" className="inline-link danger" onClick={() => removeScaleOption(index)}>
+                        {strings.remove}
+                      </button>
                     </div>
-                  ))}
-                </div>
-                <Button appearance="subtle" onClick={() => setLikelihoodScaleOptions((current) => [...current, buildEmptyScaleOption()])}>
-                  {strings.addOption}
-                </Button>
+                  </div>
+                ))}
               </div>
+              <Button appearance="subtle" onClick={() => setScoreOptions((current) => [...current, buildEmptyScaleOption()])}>
+                {strings.addOption}
+              </Button>
             </div>
-
-            <div className="muted">
-              {strings.lastUpdated}: {formatTimestamp(scaleUpdatedAt, language) || strings.notAvailable}
-              {' '}· {strings.byUser}: {scaleUpdatedBy || strings.system}
-            </div>
-            <div className="muted">{strings.scaleInUseHint}</div>
           </>
         )}
 
@@ -1108,167 +874,77 @@ function App() {
         </div>
       </Section>
 
-      <Section
-        title={strings.legacySummaryTitle}
-        subtitle={strings.legacySummarySubtitle}
-      >
-        <Banner type="ok" text={migrationMessage} />
-        <Banner type="error" text={legacySummaryError || migrationError} />
+      <Section title={strings.thresholdTitle} subtitle={strings.thresholdSubtitle}>
+        <Banner type="ok" text={thresholdMessage} />
+        <Banner type="error" text={thresholdError} />
 
-        <div className="actions">
-          <Button appearance="primary" isDisabled={legacyScanLoading || legacyMigrateLoading} onClick={handleScanLegacyValues}>
-            {legacyScanLoading ? strings.scanningLegacyValues : strings.scanLegacyValues}
-          </Button>
-          <Button
-            appearance="subtle"
-            isDisabled={legacyMigrateLoading || legacyScanLoading || !legacySummary || Number(legacySummary.legacyCount || 0) === 0}
-            onClick={handleMigrateLegacyValues}
-          >
-            {legacyMigrateLoading ? strings.migratingLegacyValues : strings.migrateLegacyValues}
-          </Button>
-        </div>
-
-        {legacySummary ? (
-          <div className="mapping-summary">
-            <div className="mapping-row">
-              <strong>{strings.legacyScanned}:</strong> {Number(legacySummary.scanned || 0)}
-            </div>
-            <div className="mapping-row">
-              <strong>{strings.legacyIssues}:</strong> {Number(legacySummary.legacyCount || 0)}
-            </div>
-            {Number(legacySummary.legacyCount || 0) === 0 ? (
-              <div className="mapping-help">{strings.legacyNoIssues}</div>
-            ) : (
-              <>
-                <div className="mapping-help">{strings.legacyFound}: {Number(legacySummary.legacyCount || 0)}</div>
-                <div className="muted">{strings.migrationNote}</div>
-              </>
-            )}
-          </div>
-        ) : null}
-      </Section>
-
-      <Section
-        title={strings.visibilityTitle}
-        subtitle={strings.visibilitySubtitle}
-      >
-        <Banner type="ok" text={configMessage} />
-        <Banner type="error" text={configError} />
-
-        <div className="muted">
-          {selectedIssueTypeIds.length} {strings.of} {issueTypes.length || 0} {strings.issueTypesSelected}
-        </div>
-        <div className="muted">
-          {strings.lastConfigured}: {formatTimestamp(lastConfiguredAt, language) || strings.notAvailable}
-        </div>
-
-        {configLoading ? (
-          <p className="muted">{strings.loadingIssueTypes}</p>
+        {thresholdLoading ? (
+          <p className="muted">{strings.loadingFields}</p>
         ) : (
-          <div className="dual-list">
-            <div
-              className={`dual-col ${dragTarget === 'enabled' ? 'drop-active' : ''}`}
-              onDragOver={(event) => handleDragOver(event, 'enabled')}
-              onDrop={(event) => handleDrop(event, 'enabled')}
-              onDragLeave={() => setDragTarget('')}
-            >
-              <div className="dual-col-header">
-                <strong>{strings.enabledIssueTypes}</strong>
-                <button
-                  type="button"
-                  className="inline-link"
-                  onClick={() => setSelectedIssueTypeIds([])}
-                  disabled={configSaving || selectedIssueTypeIds.length === 0}
-                >
-                  {strings.removeAll}
-                </button>
-              </div>
-              <div className="dual-items">
-                {selectedIssueTypes.map((issueType) => (
-                  <button
-                    key={issueType.id}
-                    type="button"
-                    className="dual-item selected"
-                    onClick={() => removeIssueType(issueType.id)}
-                    disabled={configSaving}
-                    title={strings.clickToRemove}
-                    draggable={!configSaving}
-                    onDragStart={(event) =>
-                      handleDragStart(event, issueType.id, 'enabled')
-                    }
-                    onDragEnd={handleDragEnd}
-                  >
-                    {issueType.name}
-                  </button>
-                ))}
-                {selectedIssueTypes.length === 0 ? (
-                  <div className="empty-state">{strings.noEnabledIssueTypes}</div>
-                ) : null}
-              </div>
-            </div>
-
-            <div
-              className={`dual-col ${dragTarget === 'available' ? 'drop-active' : ''}`}
-              onDragOver={(event) => handleDragOver(event, 'available')}
-              onDrop={(event) => handleDrop(event, 'available')}
-              onDragLeave={() => setDragTarget('')}
-            >
-              <div className="dual-col-header">
-                <strong>{strings.availableIssueTypes}</strong>
-                <button
-                  type="button"
-                  className="inline-link"
-                  onClick={() => setSelectedIssueTypeIds(issueTypes.map((type) => type.id))}
-                  disabled={configSaving || availableIssueTypes.length === 0}
-                >
-                  {strings.addAll}
-                </button>
-              </div>
-              <div className="dual-items">
-                {availableIssueTypes.map((issueType) => (
-                  <button
-                    key={issueType.id}
-                    type="button"
-                    className="dual-item"
-                    onClick={() => addIssueType(issueType.id)}
-                    disabled={configSaving}
-                    title={strings.clickToAdd}
-                    draggable={!configSaving}
-                    onDragStart={(event) =>
-                      handleDragStart(event, issueType.id, 'available')
-                    }
-                    onDragEnd={handleDragEnd}
-                  >
-                    {issueType.name}
-                  </button>
-                ))}
-                {availableIssueTypes.length === 0 ? (
-                  <div className="empty-state">{strings.noAvailableIssueTypes}</div>
-                ) : null}
-              </div>
-            </div>
+          <div className="field-grid">
+            <label>
+              <span>{strings.mustThreshold}</span>
+              <input className="scale-input value" type="number" value={mustThreshold} onChange={(event) => setMustThreshold(event.target.value)} />
+            </label>
+            <label>
+              <span>{strings.shouldThreshold}</span>
+              <input className="scale-input value" type="number" value={shouldThreshold} onChange={(event) => setShouldThreshold(event.target.value)} />
+            </label>
+            <label>
+              <span>{strings.couldThreshold}</span>
+              <input className="scale-input value" type="number" value={couldThreshold} onChange={(event) => setCouldThreshold(event.target.value)} />
+            </label>
           </div>
         )}
 
         <div className="actions">
-          <Button
-            appearance="primary"
-            isDisabled={configSaving || configLoading}
-            onClick={handleSaveConfig}
-          >
-            {configSaving ? strings.savingConfiguration : strings.saveConfiguration}
+          <Button appearance="primary" isDisabled={thresholdSaving || thresholdLoading} onClick={handleSaveThresholds}>
+            {thresholdSaving ? strings.savingThresholds : strings.saveThresholds}
           </Button>
-        </div>
-
-        <div className="muted">
-          {strings.enabledFor}: {selectedTypeNames.length === 0 ? strings.none : selectedTypeNames.join(', ')}
+          <Button appearance="subtle" isDisabled={thresholdSaving || thresholdLoading} onClick={handleResetThresholds}>
+            {strings.resetThresholds}
+          </Button>
         </div>
       </Section>
 
-      <Section
-        title={strings.calculationLogTitle}
-        subtitle={strings.calculationLogSubtitle}
-      >
+      <Section title={strings.visibilityTitle} subtitle={strings.visibilitySubtitle}>
+        <Banner type="ok" text={configMessage} />
+        <Banner type="error" text={configError} />
+
+        {configLoading ? (
+          <p className="muted">{strings.loadingIssueTypes}</p>
+        ) : (
+          <div className="issue-types">
+            {issueTypes.map((issueType) => {
+              const checked = selectedIssueTypeIds.includes(issueType.id);
+              return (
+                <label className={`issue-type ${checked ? 'selected' : ''}`} key={issueType.id}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        setSelectedIssueTypeIds((current) => [...new Set([...current, issueType.id])]);
+                      } else {
+                        setSelectedIssueTypeIds((current) => current.filter((id) => id !== issueType.id));
+                      }
+                    }}
+                  />
+                  <span>{issueType.name}</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="actions">
+          <Button appearance="primary" isDisabled={configSaving || configLoading} onClick={handleSaveConfig}>
+            {configSaving ? strings.savingConfiguration : strings.saveConfiguration}
+          </Button>
+        </div>
+      </Section>
+
+      <Section title={strings.calculationLogTitle} subtitle={strings.calculationLogSubtitle}>
         <Banner type="error" text={logsError} />
         <div className="actions">
           <Button appearance="primary" isDisabled={logsLoading} onClick={loadLogs}>
@@ -1283,10 +959,11 @@ function App() {
                 <tr>
                   <th>{strings.time}</th>
                   <th>{strings.issue}</th>
-                  <th>{strings.impact}</th>
-                  <th>{strings.likelihood}</th>
-                  <th>{strings.score}</th>
-                  <th>{strings.priority}</th>
+                  <th>{strings.benefit}</th>
+                  <th>{strings.urgency}</th>
+                  <th>{strings.ambition}</th>
+                  <th>{strings.total}</th>
+                  <th>{strings.moscow}</th>
                   <th>{strings.by}</th>
                   <th>{strings.origin}</th>
                 </tr>
@@ -1296,10 +973,11 @@ function App() {
                   <tr key={`${entry.timestamp}-${entry.issueKey}-${index}`}>
                     <td>{formatTimestamp(entry.timestamp, language) || '-'}</td>
                     <td>{entry.issueKey || '-'}</td>
-                    <td>{String(entry.impact ?? '-')}</td>
-                    <td>{String(entry.likelihood ?? '-')}</td>
-                    <td>{String(entry.riskScore ?? '-')}</td>
-                    <td>{localizePriority(entry.priority, language)}</td>
+                    <td>{String(entry.benefitScore ?? '-')}</td>
+                    <td>{String(entry.urgencyScore ?? '-')}</td>
+                    <td>{String(entry.ambitionScore ?? '-')}</td>
+                    <td>{String(entry.totalScore ?? '-')}</td>
+                    <td>{localizeMoscow(entry.moscowLabel, language)}</td>
                     <td>{entry.actorName || entry.actorAccountId || strings.unknown}</td>
                     <td>{entry.origin || '-'}</td>
                   </tr>

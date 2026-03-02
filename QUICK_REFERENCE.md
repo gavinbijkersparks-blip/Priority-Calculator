@@ -1,44 +1,35 @@
-# Risk Score Quick Reference
+# Priority Dashboard Quick Reference
 
 ## Formule
-`Risk Score = Impact x Likelihood`
+`Totaal score = Opbrengst + Urgentie + Ambitie`
 
-## Schaal
-Schaal komt uit admin (`Scale Options`), niet meer hardcoded.
+## Standaard MoSCoW thresholds
+- `Must >= 30`
+- `Should >= 20`
+- `Could >= 10`
+- `Won't < 10`
 
-## Prioriteit
-- `HIGH`: `>= 400`
-- `MEDIUM`: `100 - 399`
-- `LOW`: `< 100`
+## Vereiste Jira velden
+Number:
+- Opbrengst score
+- Urgentie score
+- Ambitie score
+- Totaal score
 
-## Velden
-- `Impact`
-- `Likelihood`
-- `Risk Score` (automatisch)
+Text:
+- Opbrengst toelichting
+- Urgentie toelichting
+- Ambitie toelichting
 
-## Voorbeelden
-- `Impact 20 x Likelihood 20 = 400` → `HIGH`
-- `Impact 13 x Likelihood 8 = 104` → `MEDIUM`
-- `Impact 5 x Likelihood 8 = 40` → `LOW`
+## Snelle check
+1. Open issue met actieve app.
+2. Zet de drie scores.
+3. Controleer live totaalscore + MoSCoW-label.
+4. Controleer dat waarden in Jira velden zijn opgeslagen.
 
-## Snelle flow
-1. Open issue
-2. Vul `Impact` en `Likelihood` in
-3. Check live score
-4. Auto-save of `Save now`
-
-## Admin quick flow
-1. `Field Mapping` instellen
-2. `Verify mapping`
-3. `Scale Options` beheren en opslaan
-4. `Scan legacy values` en indien nodig `Migrate legacy values`
-
-## Troubleshooting
-- Panel niet zichtbaar:
-  - Controleer issue type in `Risk Score Configuration`
-- Opslaan faalt:
-  - Controleer of custom fields zijn aangemaakt
-  - Controleer app scopes en Jira permissions
-- Geen score zichtbaar:
-  - Controleer of issue values aanwezig zijn in je actuele `Scale Options`
-  - Bij oude waarden zie je `Legacy value (not in config)`
+## Veelvoorkomend
+- Geen data-opslag:
+  - controleer field mapping in admin
+  - controleer field context/screen configuratie in Jira
+- Geen zichtbaarheid:
+  - controleer issue type visibility in admin

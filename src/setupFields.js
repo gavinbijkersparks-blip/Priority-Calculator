@@ -1,36 +1,51 @@
-// Custom Fields Setup and Mapping for Risk Score
-
 import api, { route, storage } from '@forge/api';
-import { DEFAULT_RISK_SCALE_OPTIONS, RISK_FIELDS } from './utils/constants';
+import {
+  DEFAULT_PRIORITY_SCALE_OPTIONS,
+  DEFAULT_PRIORITY_THRESHOLDS,
+  EXPLANATION_MAX_LENGTH,
+  PRIORITY_FIELDS
+} from './utils/constants';
+import { normalizeThresholds, validateThresholds } from './utils/priorityCalculator';
 
-const RISK_ISSUETYPE_PROPERTY_KEY = 'risk-score-calculator';
-const RISK_ISSUETYPE_ENABLED_FIELD = 'enabled';
-const RISK_FIELD_MAPPING_STORAGE_KEY = 'risk-score-calculator:field-mapping:v2';
-const RISK_CALC_LOGS_STORAGE_KEY = 'risk-score-calculator:calculation-logs:v1';
-const RISK_USER_CACHE_STORAGE_KEY = 'risk-score-calculator:user-cache:v1';
-const RISK_SCALE_CONFIG_STORAGE_KEY = 'risk-score-calculator:scale-config:v1';
-const MANAGED_DESCRIPTION_MARKER = 'Managed by Risk Score Calculator.';
+const PRIORITY_ISSUETYPE_PROPERTY_KEY = 'priority-dashboard';
+const PRIORITY_ISSUETYPE_ENABLED_FIELD = 'enabled';
+const PRIORITY_FIELD_MAPPING_STORAGE_KEY = 'priority-dashboard:field-mapping:v1';
+const PRIORITY_CALC_LOGS_STORAGE_KEY = 'priority-dashboard:calculation-logs:v1';
+const PRIORITY_USER_CACHE_STORAGE_KEY = 'priority-dashboard:user-cache:v1';
+const PRIORITY_SCALE_CONFIG_STORAGE_KEY = 'priority-dashboard:scale-config:v1';
+const PRIORITY_THRESHOLD_CONFIG_STORAGE_KEY = 'priority-dashboard:threshold-config:v1';
+const MANAGED_DESCRIPTION_MARKER = 'Managed by Priority Dashboard.';
 const MAX_LOG_ENTRIES = 500;
 
-const RISK_FIELD_KEYS = ['IMPACT', 'LIKELIHOOD', 'RISK_SCORE'];
-
-const LEGACY_FIELD_NAMES = {
-  IMPACT: ['Risk Calculator - Impact', 'Impact'],
-  LIKELIHOOD: ['Risk Calculator - Likelihood', 'Likelihood'],
-  RISK_SCORE: ['Risk Calculator - Risk Score', 'Risk Score']
-};
+const NUMBER_MAPPING_KEYS = [
+  'BENEFIT_SCORE',
+  'URGENCY_SCORE',
+  'AMBITION_SCORE',
+  'TOTAL_SCORE'
+];
+const TEXT_MAPPING_KEYS = [
+  'BENEFIT_EXPLANATION',
+  'URGENCY_EXPLANATION',
+  'AMBITION_EXPLANATION'
+];
+const PRIORITY_FIELD_KEYS = [...NUMBER_MAPPING_KEYS, ...TEXT_MAPPING_KEYS];
 
 async function createCustomField(name, description, type = 'number') {
-  const fieldType =
-    type === 'number'
-      ? 'com.atlassian.jira.plugin.system.customfieldtypes:float'
-      : type;
-
-  const searcherCandidates = [
+  let fieldType = 'com.atlassian.jira.plugin.system.customfieldtypes:float';
+  let searcherCandidates = [
     'com.atlassian.jira.plugin.system.customfieldtypes:exactnumber',
     'com.atlassian.jira.plugin.system.customfieldtypes:numbersearcher',
     null
   ];
+
+  if (type === 'textarea') {
+    fieldType = 'com.atlassian.jira.plugin.system.customfieldtypes:textarea';
+    searcherCandidates = [
+      'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher',
+      'com.atlassian.jira.plugin.system.customfieldtypes:exacttextsearcher',
+      null
+    ];
+  }
 
   let lastError = null;
 
@@ -75,102 +90,111 @@ async function getAllFields() {
   return await response.json();
 }
 
-async function getCachedUserMap() {
-  const cached = await storage.get(RISK_USER_CACHE_STORAGE_KEY);
-  if (!cached || typeof cached !== 'object') return {};
-  return cached;
-}
-
-async function setCachedUserMap(userMap) {
-  await storage.set(RISK_USER_CACHE_STORAGE_KEY, userMap);
-}
-
-async function resolveDisplayNameForAccountId(accountId, cachedUsers) {
-  if (!accountId) return '';
-  if (cachedUsers[accountId]) return cachedUsers[accountId];
-
-  try {
-    const response = await api
-      .asApp()
-      .requestJira(route`/rest/api/3/user?accountId=${accountId}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
-      });
-
-    if (!response.ok) {
-      return '';
-    }
-
-    const user = await response.json();
-    const displayName = String(user?.displayName || '');
-    if (displayName) {
-      cachedUsers[accountId] = displayName;
-      return displayName;
-    }
-    return '';
-  } catch (_error) {
-    return '';
-  }
+function isCustomField(field) {
+  return String(field?.id || '').startsWith('customfield_');
 }
 
 function isNumberCustomField(field) {
-  return (
-    String(field?.id || '').startsWith('customfield_') &&
-    field?.schema?.type === 'number'
-  );
+  return isCustomField(field) && field?.schema?.type === 'number';
 }
 
-function getUniqueFieldByName(fields, names) {
-  for (const name of names) {
-    const matches = fields.filter((field) => field.name === name);
-    if (matches.length === 1) {
-      return matches[0];
+function isTextCustomField(field) {
+  return isCustomField(field) && field?.schema?.type === 'string';
+}
+
+function isTextareaCustomField(field) {
+  return isTextCustomField(field) && String(field?.schema?.custom || '').includes(':textarea');
+}
+
+function toAdfDocument(text) {
+  const normalized = String(text || '').replace(/\r/g, '');
+  const lines = normalized.split('\n');
+  const content = (lines.length > 0 ? lines : ['']).map((line) => {
+    const safeLine = String(line || '');
+    if (!safeLine) {
+      return { type: 'paragraph', content: [] };
     }
-  }
-  return null;
-}
-
-function hasCompleteMapping(mapping) {
-  return RISK_FIELD_KEYS.every((key) => Boolean(mapping?.[key]));
-}
-
-async function getStoredMapping() {
-  const mapping = await storage.get(RISK_FIELD_MAPPING_STORAGE_KEY);
-  if (!mapping || typeof mapping !== 'object') return null;
-  return mapping;
-}
-
-async function setStoredMapping(mapping) {
-  await storage.set(RISK_FIELD_MAPPING_STORAGE_KEY, {
-    IMPACT: mapping.IMPACT,
-    LIKELIHOOD: mapping.LIKELIHOOD,
-    RISK_SCORE: mapping.RISK_SCORE,
-    updatedAt: new Date().toISOString()
+    return {
+      type: 'paragraph',
+      content: [{ type: 'text', text: safeLine }]
+    };
   });
-}
 
-function normalizeMappingInput(mapping) {
   return {
-    IMPACT: String(mapping?.IMPACT || ''),
-    LIKELIHOOD: String(mapping?.LIKELIHOOD || ''),
-    RISK_SCORE: String(mapping?.RISK_SCORE || '')
+    version: 1,
+    type: 'doc',
+    content
   };
 }
 
+function adfNodeToPlainText(node) {
+  if (!node || typeof node !== 'object') return '';
+  if (node.type === 'text') return String(node.text || '');
+  if (!Array.isArray(node.content)) return '';
+  return node.content.map(adfNodeToPlainText).join('');
+}
+
+function fromAdfDocument(value) {
+  if (!value || typeof value !== 'object') return '';
+  if (value.type !== 'doc' || !Array.isArray(value.content)) return '';
+
+  return value.content
+    .map((block) => adfNodeToPlainText(block))
+    .join('\n')
+    .trim();
+}
+
+function toJiraTextValue(text, fieldMeta) {
+  if (isTextareaCustomField(fieldMeta)) {
+    return toAdfDocument(text);
+  }
+  return String(text || '');
+}
+
+function fromJiraTextValue(value) {
+  if (typeof value === 'string') return value;
+  return fromAdfDocument(value);
+}
+
+function hasCompleteMapping(mapping) {
+  return PRIORITY_FIELD_KEYS.every((key) => Boolean(mapping?.[key]));
+}
+
+function normalizeMappingInput(mapping) {
+  return PRIORITY_FIELD_KEYS.reduce((acc, key) => {
+    acc[key] = String(mapping?.[key] || '');
+    return acc;
+  }, {});
+}
+
 function validateMappingValues(mapping) {
-  const missing = RISK_FIELD_KEYS.filter((key) => !mapping[key]);
+  const missing = PRIORITY_FIELD_KEYS.filter((key) => !mapping[key]);
   if (missing.length > 0) {
     return `Missing mapping values for: ${missing.join(', ')}`;
   }
 
-  const values = [mapping.IMPACT, mapping.LIKELIHOOD, mapping.RISK_SCORE];
+  const values = PRIORITY_FIELD_KEYS.map((key) => mapping[key]);
   if (new Set(values).size !== values.length) {
     return 'Each mapping must point to a different field.';
   }
 
   return null;
+}
+
+async function getStoredMapping() {
+  const mapping = await storage.get(PRIORITY_FIELD_MAPPING_STORAGE_KEY);
+  if (!mapping || typeof mapping !== 'object') return null;
+  return mapping;
+}
+
+async function setStoredMapping(mapping) {
+  await storage.set(PRIORITY_FIELD_MAPPING_STORAGE_KEY, {
+    ...PRIORITY_FIELD_KEYS.reduce((acc, key) => {
+      acc[key] = mapping[key];
+      return acc;
+    }, {}),
+    updatedAt: new Date().toISOString()
+  });
 }
 
 async function resolveAndValidateMapping(mapping) {
@@ -183,12 +207,10 @@ async function resolveAndValidateMapping(mapping) {
     return { valid: false, error: logicalError };
   }
 
-  for (const key of RISK_FIELD_KEYS) {
+  for (const key of NUMBER_MAPPING_KEYS) {
     const id = normalized[key];
     const field = byId.get(id);
-    if (!field) {
-      return { valid: false, error: `Field ${id} does not exist.` };
-    }
+    if (!field) return { valid: false, error: `Field ${id} does not exist.` };
     if (!isNumberCustomField(field)) {
       return {
         valid: false,
@@ -197,54 +219,43 @@ async function resolveAndValidateMapping(mapping) {
     }
   }
 
-  return { valid: true, mapping: normalized, fields };
+  for (const key of TEXT_MAPPING_KEYS) {
+    const id = normalized[key];
+    const field = byId.get(id);
+    if (!field) return { valid: false, error: `Field ${id} does not exist.` };
+    if (!isTextCustomField(field)) {
+      return {
+        valid: false,
+        error: `${field.name} (${field.id}) is not a text custom field.`
+      };
+    }
+  }
+
+  return { valid: true, mapping: normalized };
 }
 
-async function getResolvedRiskFieldMapping() {
+async function getResolvedPriorityFieldMapping() {
   const fields = await getAllFields();
   const byId = new Map(fields.map((field) => [String(field.id), field]));
   const stored = await getStoredMapping();
 
   if (stored && hasCompleteMapping(stored)) {
-    const validStored = RISK_FIELD_KEYS.every((key) => byId.has(String(stored[key])));
+    const validStored = PRIORITY_FIELD_KEYS.every((key) => byId.has(String(stored[key])));
     if (validStored) {
-      return {
-        IMPACT: String(stored.IMPACT),
-        LIKELIHOOD: String(stored.LIKELIHOOD),
-        RISK_SCORE: String(stored.RISK_SCORE)
-      };
+      return PRIORITY_FIELD_KEYS.reduce((acc, key) => {
+        acc[key] = String(stored[key]);
+        return acc;
+      }, {});
     }
-  }
-
-  // Migration fallback: only use when names resolve uniquely.
-  const migrated = {};
-  for (const key of RISK_FIELD_KEYS) {
-    const match = getUniqueFieldByName(fields, LEGACY_FIELD_NAMES[key]);
-    if (match?.id) {
-      migrated[key] = String(match.id);
-    }
-  }
-
-  if (hasCompleteMapping(migrated)) {
-    await setStoredMapping(migrated);
-    return migrated;
   }
 
   return null;
 }
 
-function getDefaultRiskScaleConfig() {
+function getDefaultPriorityScaleConfig() {
   return {
     version: 1,
-    impactOptions: DEFAULT_RISK_SCALE_OPTIONS.map((option) => ({
-      value: Number(option.value),
-      labelDefault: String(option.labelDefault || ''),
-      labels: {
-        en: String(option?.labels?.en || ''),
-        nl: String(option?.labels?.nl || '')
-      }
-    })),
-    likelihoodOptions: DEFAULT_RISK_SCALE_OPTIONS.map((option) => ({
+    scoreOptions: DEFAULT_PRIORITY_SCALE_OPTIONS.map((option) => ({
       value: Number(option.value),
       labelDefault: String(option.labelDefault || ''),
       labels: {
@@ -265,6 +276,18 @@ function normalizeScaleOption(option) {
       en: String(option?.labels?.en || '').trim(),
       nl: String(option?.labels?.nl || '').trim()
     }
+  };
+}
+
+function normalizeScaleConfigInput(inputConfig) {
+  const fallback = getDefaultPriorityScaleConfig();
+  const scoreInput = Array.isArray(inputConfig?.scoreOptions)
+    ? inputConfig.scoreOptions
+    : fallback.scoreOptions;
+
+  return {
+    version: 1,
+    scoreOptions: scoreInput.map(normalizeScaleOption)
   };
 }
 
@@ -303,43 +326,18 @@ function validateScaleOptions(options, listName) {
   return null;
 }
 
-function normalizeScaleConfigInput(inputConfig) {
-  const fallback = getDefaultRiskScaleConfig();
-  const impactInput = Array.isArray(inputConfig?.impactOptions)
-    ? inputConfig.impactOptions
-    : fallback.impactOptions;
-  const likelihoodInput = Array.isArray(inputConfig?.likelihoodOptions)
-    ? inputConfig.likelihoodOptions
-    : fallback.likelihoodOptions;
-
-  const impactOptions = impactInput.map(normalizeScaleOption);
-  const likelihoodOptions = likelihoodInput.map(normalizeScaleOption);
-
-  return {
-    version: 1,
-    impactOptions,
-    likelihoodOptions
-  };
-}
-
 function validateScaleConfig(config) {
-  const impactError = validateScaleOptions(config.impactOptions, 'impactOptions');
-  if (impactError) return impactError;
-
-  const likelihoodError = validateScaleOptions(config.likelihoodOptions, 'likelihoodOptions');
-  if (likelihoodError) return likelihoodError;
-
-  return null;
+  return validateScaleOptions(config.scoreOptions, 'scoreOptions');
 }
 
-async function getStoredRiskScaleConfig() {
-  const current = await storage.get(RISK_SCALE_CONFIG_STORAGE_KEY);
+async function getStoredPriorityScaleConfig() {
+  const current = await storage.get(PRIORITY_SCALE_CONFIG_STORAGE_KEY);
   if (!current || typeof current !== 'object') return null;
   return current;
 }
 
-async function ensureRiskScaleConfigExists() {
-  const current = await getStoredRiskScaleConfig();
+async function ensurePriorityScaleConfigExists() {
+  const current = await getStoredPriorityScaleConfig();
   if (current) {
     const normalized = normalizeScaleConfigInput(current);
     const validationError = validateScaleConfig(normalized);
@@ -352,339 +350,61 @@ async function ensureRiskScaleConfigExists() {
     }
   }
 
-  const defaults = getDefaultRiskScaleConfig();
+  const defaults = getDefaultPriorityScaleConfig();
   const next = {
     ...defaults,
     updatedAt: new Date().toISOString(),
     updatedBy: current ? 'system-migration' : 'system-default'
   };
-  await storage.set(RISK_SCALE_CONFIG_STORAGE_KEY, next);
+  await storage.set(PRIORITY_SCALE_CONFIG_STORAGE_KEY, next);
   return next;
 }
 
 async function getScaleDefaultValues() {
-  const config = await ensureRiskScaleConfigExists();
-  const impactDefault = Number(config?.impactOptions?.[0]?.value) || 1;
-  const likelihoodDefault = Number(config?.likelihoodOptions?.[0]?.value) || 1;
-  return { impactDefault, likelihoodDefault };
-}
-
-function buildAllowedValueSet(options) {
-  return new Set((options || []).map((item) => Number(item?.value)).filter((value) => Number.isFinite(value)));
-}
-
-function getMinConfiguredValue(options, fallbackValue = 1) {
-  const values = (options || [])
-    .map((item) => Number(item?.value))
-    .filter((value) => Number.isFinite(value) && value > 0)
-    .sort((a, b) => a - b);
-  return values[0] || fallbackValue;
-}
-
-function getLegacyValueMeta(value, allowedValues) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return { hasValue: false, numeric: null, isLegacy: false };
-  }
+  const config = await ensurePriorityScaleConfigExists();
+  const defaultValue = Number(config?.scoreOptions?.[0]?.value) || 1;
   return {
-    hasValue: true,
-    numeric,
-    isLegacy: !allowedValues.has(numeric)
+    benefitDefault: defaultValue,
+    urgencyDefault: defaultValue,
+    ambitionDefault: defaultValue
   };
 }
 
-async function searchIssuesByJql(jql, fields, maxResults = 50, nextPageToken = '') {
-  const requestBody = {
-    jql,
-    maxResults: Number(maxResults) || 50,
-    fields: Array.isArray(fields) ? fields : []
-  };
-  if (nextPageToken) {
-    requestBody.nextPageToken = String(nextPageToken);
-  }
-
-  const response = await api
-    .asApp()
-    .requestJira(route`/rest/api/3/search/jql`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to search issues: ${error}`);
-  }
-
-  const payload = await response.json();
+function getDefaultThresholdConfig() {
   return {
-    issues: payload?.issues || [],
-    total: Number(payload?.total) || Number((payload?.issues || []).length) || 0,
-    maxResults: Number(payload?.maxResults) || maxResults,
-    nextPageToken: String(payload?.nextPageToken || '')
+    version: 1,
+    ...DEFAULT_PRIORITY_THRESHOLDS,
+    updatedAt: null,
+    updatedBy: ''
   };
 }
 
-export async function verifyRiskFieldMapping() {
-  try {
-    const mapping = await getResolvedRiskFieldMapping();
-    if (!mapping || !hasCompleteMapping(mapping)) {
+async function ensurePriorityThresholdConfigExists() {
+  const current = await storage.get(PRIORITY_THRESHOLD_CONFIG_STORAGE_KEY);
+  if (current && typeof current === 'object') {
+    const validationError = validateThresholds(current);
+    if (!validationError) {
       return {
-        success: false,
-        error: 'Risk field mapping is not configured. Open Risk Score Configuration and map fields.'
+        version: 1,
+        ...normalizeThresholds(current),
+        updatedAt: current.updatedAt || null,
+        updatedBy: String(current.updatedBy || '')
       };
     }
-
-    const fields = await getAllFields();
-    const byId = new Map(fields.map((field) => [String(field.id), field]));
-
-    const fieldMeta = {
-      IMPACT: byId.get(String(mapping.IMPACT)) || null,
-      LIKELIHOOD: byId.get(String(mapping.LIKELIHOOD)) || null,
-      RISK_SCORE: byId.get(String(mapping.RISK_SCORE)) || null
-    };
-
-    const missingKeys = Object.entries(fieldMeta)
-      .filter(([, field]) => !field)
-      .map(([key]) => key);
-
-    if (missingKeys.length > 0) {
-      return {
-        success: false,
-        error: `Mapped field(s) missing: ${missingKeys.join(', ')}`
-      };
-    }
-
-    const nonNumber = Object.entries(fieldMeta)
-      .filter(([, field]) => !isNumberCustomField(field))
-      .map(([key, field]) => `${key}=${field.name} (${field.id})`);
-
-    if (nonNumber.length > 0) {
-      return {
-        success: false,
-        error: `Mapped field(s) are not number custom fields: ${nonNumber.join('; ')}`
-      };
-    }
-
-    return {
-      success: true,
-      mapping,
-      fields: {
-        IMPACT: { id: String(fieldMeta.IMPACT.id), name: String(fieldMeta.IMPACT.name || '') },
-        LIKELIHOOD: { id: String(fieldMeta.LIKELIHOOD.id), name: String(fieldMeta.LIKELIHOOD.name || '') },
-        RISK_SCORE: { id: String(fieldMeta.RISK_SCORE.id), name: String(fieldMeta.RISK_SCORE.name || '') }
-      }
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
   }
+
+  const defaults = getDefaultThresholdConfig();
+  const next = {
+    ...defaults,
+    updatedAt: new Date().toISOString(),
+    updatedBy: current ? 'system-migration' : 'system-default'
+  };
+  await storage.set(PRIORITY_THRESHOLD_CONFIG_STORAGE_KEY, next);
+  return next;
 }
 
-export async function getLegacyRiskValueSummary(limit = 100) {
-  try {
-    const mappingCheck = await verifyRiskFieldMapping();
-    if (!mappingCheck.success) return mappingCheck;
-
-    const scaleConfig = await ensureRiskScaleConfigExists();
-    const allowedImpact = buildAllowedValueSet(scaleConfig.impactOptions);
-    const allowedLikelihood = buildAllowedValueSet(scaleConfig.likelihoodOptions);
-    const fields = [mappingCheck.mapping.IMPACT, mappingCheck.mapping.LIKELIHOOD];
-    const safeLimit = Math.max(10, Math.min(Number(limit) || 100, 500));
-
-    const jql = `${mappingCheck.mapping.IMPACT} IS NOT EMPTY OR ${mappingCheck.mapping.LIKELIHOOD} IS NOT EMPTY`;
-    const pageSize = Math.max(10, Math.min(safeLimit, 100));
-    let allIssues = [];
-    let totalMatchedByJql = 0;
-    let nextPageToken = '';
-
-    do {
-      const page = await searchIssuesByJql(jql, ['key', ...fields], pageSize, nextPageToken);
-      if (!totalMatchedByJql) totalMatchedByJql = page.total;
-      allIssues = [...allIssues, ...(page.issues || [])].slice(0, safeLimit);
-      nextPageToken = page.nextPageToken || '';
-    } while (nextPageToken && allIssues.length < safeLimit);
-
-    const legacyIssues = [];
-    for (const issue of allIssues) {
-      const issueFields = issue?.fields || {};
-      const impactMeta = getLegacyValueMeta(issueFields[mappingCheck.mapping.IMPACT], allowedImpact);
-      const likelihoodMeta = getLegacyValueMeta(issueFields[mappingCheck.mapping.LIKELIHOOD], allowedLikelihood);
-      if (!impactMeta.isLegacy && !likelihoodMeta.isLegacy) continue;
-
-      legacyIssues.push({
-        issueKey: String(issue?.key || ''),
-        impact: impactMeta.hasValue ? impactMeta.numeric : null,
-        likelihood: likelihoodMeta.hasValue ? likelihoodMeta.numeric : null,
-        impactLegacy: impactMeta.isLegacy,
-        likelihoodLegacy: likelihoodMeta.isLegacy
-      });
-    }
-
-    return {
-      success: true,
-      scanned: allIssues.length,
-      totalMatchedByJql,
-      legacyCount: legacyIssues.length,
-      legacyIssues
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function migrateLegacyRiskValues(limit = 200) {
-  try {
-    const mappingCheck = await verifyRiskFieldMapping();
-    if (!mappingCheck.success) return mappingCheck;
-
-    const mapping = mappingCheck.mapping;
-    const scaleConfig = await ensureRiskScaleConfigExists();
-    const allowedImpact = buildAllowedValueSet(scaleConfig.impactOptions);
-    const allowedLikelihood = buildAllowedValueSet(scaleConfig.likelihoodOptions);
-    const impactFallback = getMinConfiguredValue(scaleConfig.impactOptions, 1);
-    const likelihoodFallback = getMinConfiguredValue(scaleConfig.likelihoodOptions, 1);
-    const safeLimit = Math.max(1, Math.min(Number(limit) || 200, 500));
-
-    const jql = `${mapping.IMPACT} IS NOT EMPTY OR ${mapping.LIKELIHOOD} IS NOT EMPTY`;
-    const pageSize = Math.max(10, Math.min(safeLimit, 100));
-    let allIssues = [];
-    let totalMatchedByJql = 0;
-    let nextPageToken = '';
-
-    do {
-      const page = await searchIssuesByJql(jql, ['key', mapping.IMPACT, mapping.LIKELIHOOD], pageSize, nextPageToken);
-      if (!totalMatchedByJql) totalMatchedByJql = page.total;
-      allIssues = [...allIssues, ...(page.issues || [])].slice(0, safeLimit);
-      nextPageToken = page.nextPageToken || '';
-    } while (nextPageToken && allIssues.length < safeLimit);
-
-    let updatedCount = 0;
-    const updatedIssues = [];
-    const failedIssues = [];
-
-    for (const issue of allIssues) {
-      const issueKey = String(issue?.key || '');
-      const issueFields = issue?.fields || {};
-      const impactMeta = getLegacyValueMeta(issueFields[mapping.IMPACT], allowedImpact);
-      const likelihoodMeta = getLegacyValueMeta(issueFields[mapping.LIKELIHOOD], allowedLikelihood);
-      if (!impactMeta.isLegacy && !likelihoodMeta.isLegacy) continue;
-
-      const nextImpact = impactMeta.isLegacy
-        ? impactFallback
-        : (impactMeta.hasValue ? impactMeta.numeric : impactFallback);
-      const nextLikelihood = likelihoodMeta.isLegacy
-        ? likelihoodFallback
-        : (likelihoodMeta.hasValue ? likelihoodMeta.numeric : likelihoodFallback);
-      const nextRiskScore = nextImpact * nextLikelihood;
-
-      const payload = {
-        fields: {
-          [mapping.IMPACT]: Number(nextImpact),
-          [mapping.LIKELIHOOD]: Number(nextLikelihood),
-          [mapping.RISK_SCORE]: Number(nextRiskScore)
-        }
-      };
-
-      const updateResponse = await api.asApp().requestJira(route`/rest/api/3/issue/${issueKey}`, {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!updateResponse.ok) {
-        const errorText = await updateResponse.text();
-        failedIssues.push({ issueKey, error: errorText });
-        continue;
-      }
-
-      updatedCount += 1;
-      updatedIssues.push({
-        issueKey,
-        from: {
-          impact: impactMeta.hasValue ? impactMeta.numeric : null,
-          likelihood: likelihoodMeta.hasValue ? likelihoodMeta.numeric : null
-        },
-        to: {
-          impact: nextImpact,
-          likelihood: nextLikelihood,
-          riskScore: nextRiskScore
-        }
-      });
-
-      await appendRiskCalculationLog({
-        issueKey,
-        impact: nextImpact,
-        likelihood: nextLikelihood,
-        riskScore: nextRiskScore,
-        priority: nextRiskScore >= 400 ? 'HIGH' : nextRiskScore >= 100 ? 'MEDIUM' : 'LOW',
-        actorAccountId: '',
-        actorName: 'Migration job',
-        origin: 'migration'
-      });
-    }
-
-    return {
-      success: true,
-      scanned: allIssues.length,
-      totalMatchedByJql,
-      updatedCount,
-      updatedIssues,
-      failedCount: failedIssues.length,
-      failedIssues
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function getRiskScaleConfig() {
-  try {
-    const config = await ensureRiskScaleConfigExists();
-    return { success: true, config };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function saveRiskScaleConfig(config, actorAccountId = '') {
-  try {
-    const normalized = normalizeScaleConfigInput(config || {});
-    const validationError = validateScaleConfig(normalized);
-    if (validationError) {
-      return { success: false, error: validationError };
-    }
-
-    const next = {
-      ...normalized,
-      updatedAt: new Date().toISOString(),
-      updatedBy: String(actorAccountId || '')
-    };
-    await storage.set(RISK_SCALE_CONFIG_STORAGE_KEY, next);
-    return { success: true, config: next };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function resetRiskScaleConfig(actorAccountId = '') {
-  try {
-    const defaults = getDefaultRiskScaleConfig();
-    const next = {
-      ...defaults,
-      updatedAt: new Date().toISOString(),
-      updatedBy: String(actorAccountId || '')
-    };
-    await storage.set(RISK_SCALE_CONFIG_STORAGE_KEY, next);
-    return { success: true, config: next };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+function sanitizeExplanation(value) {
+  return String(value || '').trim().slice(0, EXPLANATION_MAX_LENGTH);
 }
 
 async function fetchIssueTypes() {
@@ -709,7 +429,7 @@ async function fetchIssueTypes() {
 
 async function getIssueTypeEnabled(issueTypeId) {
   const response = await api.asApp().requestJira(
-    route`/rest/api/3/issuetype/${issueTypeId}/properties/${RISK_ISSUETYPE_PROPERTY_KEY}`,
+    route`/rest/api/3/issuetype/${issueTypeId}/properties/${PRIORITY_ISSUETYPE_PROPERTY_KEY}`,
     { method: 'GET' }
   );
 
@@ -721,14 +441,14 @@ async function getIssueTypeEnabled(issueTypeId) {
   }
 
   const property = await response.json();
-  const value = property?.value?.[RISK_ISSUETYPE_ENABLED_FIELD];
+  const value = property?.value?.[PRIORITY_ISSUETYPE_ENABLED_FIELD];
   const updatedAt = property?.value?.updatedAt || null;
   return { enabled: String(value) === 'true', updatedAt };
 }
 
 async function setIssueTypeEnabled(issueTypeId, enabled, updatedAt) {
   const response = await api.asApp().requestJira(
-    route`/rest/api/3/issuetype/${issueTypeId}/properties/${RISK_ISSUETYPE_PROPERTY_KEY}`,
+    route`/rest/api/3/issuetype/${issueTypeId}/properties/${PRIORITY_ISSUETYPE_PROPERTY_KEY}`,
     {
       method: 'PUT',
       headers: {
@@ -736,7 +456,7 @@ async function setIssueTypeEnabled(issueTypeId, enabled, updatedAt) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        [RISK_ISSUETYPE_ENABLED_FIELD]: enabled ? 'true' : 'false',
+        [PRIORITY_ISSUETYPE_ENABLED_FIELD]: enabled ? 'true' : 'false',
         updatedAt
       })
     }
@@ -748,264 +468,43 @@ async function setIssueTypeEnabled(issueTypeId, enabled, updatedAt) {
   }
 }
 
-export async function getRiskVisibilityConfig() {
-  try {
-    const issueTypes = await fetchIssueTypes();
-    const rows = await Promise.all(
-      issueTypes.map(async (type) => ({
-        id: type.id,
-        ...(await getIssueTypeEnabled(type.id))
-      }))
-    );
-
-    const enabledIssueTypeIds = rows.filter((item) => item.enabled).map((item) => item.id);
-    const updatedAt = rows
-      .map((item) => item.updatedAt)
-      .filter(Boolean)
-      .sort()
-      .at(-1) || null;
-
-    return { success: true, enabledIssueTypeIds, updatedAt };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+async function getCachedUserMap() {
+  const cached = await storage.get(PRIORITY_USER_CACHE_STORAGE_KEY);
+  if (!cached || typeof cached !== 'object') return {};
+  return cached;
 }
 
-export async function saveRiskVisibilityConfig(enabledIssueTypeIds) {
-  try {
-    const selected = new Set((enabledIssueTypeIds || []).map(String));
-    const issueTypes = await fetchIssueTypes();
-    const updatedAt = new Date().toISOString();
-
-    await Promise.all(
-      issueTypes.map((type) => setIssueTypeEnabled(type.id, selected.has(type.id), updatedAt))
-    );
-
-    return {
-      success: true,
-      enabledIssueTypeIds: [...selected],
-      updatedAt
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+async function setCachedUserMap(userMap) {
+  await storage.set(PRIORITY_USER_CACHE_STORAGE_KEY, userMap);
 }
 
-export async function getJiraIssueTypes() {
-  try {
-    return {
-      success: true,
-      issueTypes: await fetchIssueTypes()
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
+async function resolveDisplayNameForAccountId(accountId, cachedUsers) {
+  if (!accountId) return '';
+  if (cachedUsers[accountId]) return cachedUsers[accountId];
 
-export async function getAvailableRiskFields() {
   try {
-    const fields = await getAllFields();
-    const numberFields = fields
-      .filter((field) => isNumberCustomField(field))
-      .map((field) => ({
-        id: String(field.id),
-        name: field.name,
-        description: field.description || ''
-      }))
-      .sort((a, b) => {
-        const nameCompare = a.name.localeCompare(b.name);
-        if (nameCompare !== 0) return nameCompare;
-        return a.id.localeCompare(b.id);
+    const response = await api
+      .asApp()
+      .requestJira(route`/rest/api/3/user?accountId=${accountId}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json'
+        }
       });
 
-    return { success: true, fields: numberFields };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function getRiskFieldMapping() {
-  try {
-    const mapping = await getResolvedRiskFieldMapping();
-    return { success: true, mapping };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function saveRiskFieldMapping(mapping) {
-  try {
-    const validated = await resolveAndValidateMapping(mapping || {});
-    if (!validated.valid) {
-      return { success: false, error: validated.error };
-    }
-
-    await setStoredMapping(validated.mapping);
-    return {
-      success: true,
-      mapping: validated.mapping,
-      updatedAt: new Date().toISOString()
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function setupCustomFields() {
-  const fieldIds = {};
-
-  try {
-    const fields = await getAllFields();
-    let createdCount = 0;
-
-    for (const [key, config] of Object.entries(RISK_FIELDS)) {
-      let field = fields.find(
-        (candidate) =>
-          candidate.name === config.name &&
-          String(candidate.description || '').includes(MANAGED_DESCRIPTION_MARKER)
-      );
-
-      if (!field) {
-        field = await createCustomField(config.name, config.description, config.type);
-        createdCount += 1;
-      }
-
-      fieldIds[key] = String(field.id);
-    }
-
-    await setStoredMapping(fieldIds);
-    return {
-      success: true,
-      fieldIds,
-      createdCount
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function saveRiskToIssue(issueKey, impact, likelihood, riskScore) {
-  if (!issueKey) {
-    return { success: false, error: 'Issue key is missing.' };
-  }
-
-  try {
-    const mapping = await getResolvedRiskFieldMapping();
-    if (!mapping || !hasCompleteMapping(mapping)) {
-      return {
-        success: false,
-        error: 'Risk field mapping is not configured. Open Risk Score Configuration and map fields.'
-      };
-    }
-
-    const payload = {
-      fields: {
-        [mapping.IMPACT]: Number(impact),
-        [mapping.LIKELIHOOD]: Number(likelihood),
-        [mapping.RISK_SCORE]: Number(riskScore)
-      }
-    };
-
-    const response = await api.asApp().requestJira(route`/rest/api/3/issue/${issueKey}`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
     if (!response.ok) {
-      const error = await response.text();
-      return { success: false, error: `Issue update failed: ${error}` };
+      return '';
     }
 
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function getRiskStateFromIssue(issueKey) {
-  if (!issueKey) {
-    return { success: false, error: 'Issue key is missing.' };
-  }
-
-  try {
-    const { impactDefault, likelihoodDefault } = await getScaleDefaultValues();
-    const mapping = await getResolvedRiskFieldMapping();
-    if (!mapping || !hasCompleteMapping(mapping)) {
-      return {
-        success: false,
-        error: 'Risk field mapping is not configured. Open Risk Score Configuration and map fields.'
-      };
+    const user = await response.json();
+    const displayName = String(user?.displayName || '');
+    if (displayName) {
+      cachedUsers[accountId] = displayName;
+      return displayName;
     }
-
-    const response = await api.asApp().requestJira(route`/rest/api/3/issue/${issueKey}`, {
-      method: 'GET'
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      return { success: false, error: `Failed to load issue: ${error}` };
-    }
-
-    const issue = await response.json();
-    const fields = issue.fields || {};
-
-    return {
-      success: true,
-      values: {
-        impact: Number(fields[mapping.IMPACT]) || impactDefault,
-        likelihood: Number(fields[mapping.LIKELIHOOD]) || likelihoodDefault,
-        riskScore: Number(fields[mapping.RISK_SCORE]) || null
-      }
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function appendRiskCalculationLog(entry) {
-  try {
-    const current = await storage.get(RISK_CALC_LOGS_STORAGE_KEY);
-    const logs = Array.isArray(current) ? current : [];
-    const next = [
-      {
-        timestamp: new Date().toISOString(),
-        issueKey: String(entry?.issueKey || ''),
-        impact: Number(entry?.impact) || 1,
-        likelihood: Number(entry?.likelihood) || 1,
-        riskScore: Number(entry?.riskScore) || 1,
-        priority: String(entry?.priority || ''),
-        actorAccountId: String(entry?.actorAccountId || ''),
-        actorName: String(entry?.actorName || ''),
-        origin: String(entry?.origin || '')
-      },
-      ...logs
-    ].slice(0, MAX_LOG_ENTRIES);
-
-    await storage.set(RISK_CALC_LOGS_STORAGE_KEY, next);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function getRiskCalculationLogs(limit = 100) {
-  try {
-    const current = await storage.get(RISK_CALC_LOGS_STORAGE_KEY);
-    const logs = Array.isArray(current) ? current : [];
-    const safeLimit = Math.max(1, Math.min(Number(limit) || 100, MAX_LOG_ENTRIES));
-    const sliced = logs.slice(0, safeLimit);
-    const enrichedLogs = await enrichLogsWithDisplayNames(sliced);
-
-    return {
-      success: true,
-      logs: enrichedLogs
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
+    return '';
+  } catch (_error) {
+    return '';
   }
 }
 
@@ -1035,14 +534,458 @@ async function enrichLogsWithDisplayNames(logEntries) {
   });
 }
 
-export async function getRiskCalculationLogsForIssue(issueKey, limit = 50) {
+export async function verifyPriorityFieldMapping() {
+  try {
+    const mapping = await getResolvedPriorityFieldMapping();
+    if (!mapping || !hasCompleteMapping(mapping)) {
+      return {
+        success: false,
+        error: 'Priority field mapping is not configured. Open Priority Dashboard Configuration and map fields.'
+      };
+    }
+
+    const fields = await getAllFields();
+    const byId = new Map(fields.map((field) => [String(field.id), field]));
+
+    const fieldMeta = PRIORITY_FIELD_KEYS.reduce((acc, key) => {
+      acc[key] = byId.get(String(mapping[key])) || null;
+      return acc;
+    }, {});
+
+    const missingKeys = Object.entries(fieldMeta)
+      .filter(([, field]) => !field)
+      .map(([key]) => key);
+
+    if (missingKeys.length > 0) {
+      return {
+        success: false,
+        error: `Mapped field(s) missing: ${missingKeys.join(', ')}`
+      };
+    }
+
+    const nonNumber = NUMBER_MAPPING_KEYS
+      .filter((key) => !isNumberCustomField(fieldMeta[key]))
+      .map((key) => `${key}=${fieldMeta[key]?.name} (${fieldMeta[key]?.id})`);
+
+    if (nonNumber.length > 0) {
+      return {
+        success: false,
+        error: `Mapped score field(s) are not number custom fields: ${nonNumber.join('; ')}`
+      };
+    }
+
+    const nonText = TEXT_MAPPING_KEYS
+      .filter((key) => !isTextCustomField(fieldMeta[key]))
+      .map((key) => `${key}=${fieldMeta[key]?.name} (${fieldMeta[key]?.id})`);
+
+    if (nonText.length > 0) {
+      return {
+        success: false,
+        error: `Mapped explanation field(s) are not text custom fields: ${nonText.join('; ')}`
+      };
+    }
+
+    return {
+      success: true,
+      mapping,
+      fields: PRIORITY_FIELD_KEYS.reduce((acc, key) => {
+        acc[key] = {
+          id: String(fieldMeta[key].id),
+          name: String(fieldMeta[key].name || '')
+        };
+        return acc;
+      }, {})
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityScaleConfig() {
+  try {
+    const config = await ensurePriorityScaleConfigExists();
+    return { success: true, config };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function savePriorityScaleConfig(config, actorAccountId = '') {
+  try {
+    const normalized = normalizeScaleConfigInput(config || {});
+    const validationError = validateScaleConfig(normalized);
+    if (validationError) {
+      return { success: false, error: validationError };
+    }
+
+    const next = {
+      ...normalized,
+      updatedAt: new Date().toISOString(),
+      updatedBy: String(actorAccountId || '')
+    };
+    await storage.set(PRIORITY_SCALE_CONFIG_STORAGE_KEY, next);
+    return { success: true, config: next };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function resetPriorityScaleConfig(actorAccountId = '') {
+  try {
+    const defaults = getDefaultPriorityScaleConfig();
+    const next = {
+      ...defaults,
+      updatedAt: new Date().toISOString(),
+      updatedBy: String(actorAccountId || '')
+    };
+    await storage.set(PRIORITY_SCALE_CONFIG_STORAGE_KEY, next);
+    return { success: true, config: next };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityThresholdConfig() {
+  try {
+    const config = await ensurePriorityThresholdConfigExists();
+    return { success: true, config };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function savePriorityThresholdConfig(config, actorAccountId = '') {
+  try {
+    const validationError = validateThresholds(config || {});
+    if (validationError) return { success: false, error: validationError };
+
+    const next = {
+      version: 1,
+      ...normalizeThresholds(config || {}),
+      updatedAt: new Date().toISOString(),
+      updatedBy: String(actorAccountId || '')
+    };
+
+    await storage.set(PRIORITY_THRESHOLD_CONFIG_STORAGE_KEY, next);
+    return { success: true, config: next };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function resetPriorityThresholdConfig(actorAccountId = '') {
+  try {
+    const defaults = getDefaultThresholdConfig();
+    const next = {
+      ...defaults,
+      updatedAt: new Date().toISOString(),
+      updatedBy: String(actorAccountId || '')
+    };
+
+    await storage.set(PRIORITY_THRESHOLD_CONFIG_STORAGE_KEY, next);
+    return { success: true, config: next };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getJiraIssueTypes() {
+  try {
+    return {
+      success: true,
+      issueTypes: await fetchIssueTypes()
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityVisibilityConfig() {
+  try {
+    const issueTypes = await fetchIssueTypes();
+    const rows = await Promise.all(
+      issueTypes.map(async (type) => ({
+        id: type.id,
+        ...(await getIssueTypeEnabled(type.id))
+      }))
+    );
+
+    const enabledIssueTypeIds = rows.filter((item) => item.enabled).map((item) => item.id);
+    const updatedAt = rows
+      .map((item) => item.updatedAt)
+      .filter(Boolean)
+      .sort()
+      .at(-1) || null;
+
+    return { success: true, enabledIssueTypeIds, updatedAt };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function savePriorityVisibilityConfig(enabledIssueTypeIds) {
+  try {
+    const selected = new Set((enabledIssueTypeIds || []).map(String));
+    const issueTypes = await fetchIssueTypes();
+    const updatedAt = new Date().toISOString();
+
+    await Promise.all(
+      issueTypes.map((type) => setIssueTypeEnabled(type.id, selected.has(type.id), updatedAt))
+    );
+
+    return {
+      success: true,
+      enabledIssueTypeIds: [...selected],
+      updatedAt
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getAvailablePriorityFields() {
+  try {
+    const fields = await getAllFields();
+    const normalized = fields
+      .filter((field) => isCustomField(field))
+      .map((field) => ({
+        id: String(field.id),
+        name: field.name,
+        description: field.description || '',
+        schemaType: String(field?.schema?.type || '')
+      }))
+      .sort((a, b) => {
+        const nameCompare = a.name.localeCompare(b.name);
+        if (nameCompare !== 0) return nameCompare;
+        return a.id.localeCompare(b.id);
+      });
+
+    const numberFields = normalized.filter((field) => field.schemaType === 'number');
+    const textFields = normalized.filter((field) => field.schemaType === 'string');
+
+    return { success: true, fields: normalized, numberFields, textFields };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityFieldMapping() {
+  try {
+    const mapping = await getResolvedPriorityFieldMapping();
+    return { success: true, mapping };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function savePriorityFieldMapping(mapping) {
+  try {
+    const validated = await resolveAndValidateMapping(mapping || {});
+    if (!validated.valid) {
+      return { success: false, error: validated.error };
+    }
+
+    await setStoredMapping(validated.mapping);
+    return {
+      success: true,
+      mapping: validated.mapping,
+      updatedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function setupCustomFields() {
+  const fieldIds = {};
+
+  try {
+    const fields = await getAllFields();
+    let createdCount = 0;
+
+    for (const [key, config] of Object.entries(PRIORITY_FIELDS)) {
+      let field = fields.find(
+        (candidate) =>
+          candidate.name === config.name &&
+          String(candidate.description || '').includes(MANAGED_DESCRIPTION_MARKER)
+      );
+
+      if (!field) {
+        field = await createCustomField(config.name, config.description, config.type);
+        createdCount += 1;
+      }
+
+      fieldIds[key] = String(field.id);
+    }
+
+    await setStoredMapping(fieldIds);
+    return {
+      success: true,
+      fieldIds,
+      createdCount
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function savePriorityToIssue(issueKey, values) {
+  if (!issueKey) {
+    return { success: false, error: 'Issue key is missing.' };
+  }
+
+  try {
+    const mapping = await getResolvedPriorityFieldMapping();
+    if (!mapping || !hasCompleteMapping(mapping)) {
+      return {
+        success: false,
+        error: 'Priority field mapping is not configured. Open Priority Dashboard Configuration and map fields.'
+      };
+    }
+
+    const allFields = await getAllFields();
+    const byId = new Map(allFields.map((field) => [String(field.id), field]));
+    const benefitExplanationField = byId.get(String(mapping.BENEFIT_EXPLANATION));
+    const urgencyExplanationField = byId.get(String(mapping.URGENCY_EXPLANATION));
+    const ambitionExplanationField = byId.get(String(mapping.AMBITION_EXPLANATION));
+
+    const payload = {
+      fields: {
+        [mapping.BENEFIT_SCORE]: Number(values?.benefitScore),
+        [mapping.URGENCY_SCORE]: Number(values?.urgencyScore),
+        [mapping.AMBITION_SCORE]: Number(values?.ambitionScore),
+        [mapping.TOTAL_SCORE]: Number(values?.totalScore),
+        [mapping.BENEFIT_EXPLANATION]: toJiraTextValue(
+          sanitizeExplanation(values?.benefitExplanation),
+          benefitExplanationField
+        ),
+        [mapping.URGENCY_EXPLANATION]: toJiraTextValue(
+          sanitizeExplanation(values?.urgencyExplanation),
+          urgencyExplanationField
+        ),
+        [mapping.AMBITION_EXPLANATION]: toJiraTextValue(
+          sanitizeExplanation(values?.ambitionExplanation),
+          ambitionExplanationField
+        )
+      }
+    };
+
+    const response = await api.asApp().requestJira(route`/rest/api/3/issue/${issueKey}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Issue update failed: ${error}` };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityStateFromIssue(issueKey) {
+  if (!issueKey) {
+    return { success: false, error: 'Issue key is missing.' };
+  }
+
+  try {
+    const defaults = await getScaleDefaultValues();
+    const mapping = await getResolvedPriorityFieldMapping();
+    if (!mapping || !hasCompleteMapping(mapping)) {
+      return {
+        success: false,
+        error: 'Priority field mapping is not configured. Open Priority Dashboard Configuration and map fields.'
+      };
+    }
+
+    const response = await api.asApp().requestJira(route`/rest/api/3/issue/${issueKey}`, {
+      method: 'GET'
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to load issue: ${error}` };
+    }
+
+    const issue = await response.json();
+    const fields = issue.fields || {};
+
+    return {
+      success: true,
+      values: {
+        benefitScore: Number(fields[mapping.BENEFIT_SCORE]) || defaults.benefitDefault,
+        urgencyScore: Number(fields[mapping.URGENCY_SCORE]) || defaults.urgencyDefault,
+        ambitionScore: Number(fields[mapping.AMBITION_SCORE]) || defaults.ambitionDefault,
+        totalScore: Number(fields[mapping.TOTAL_SCORE]) || null,
+        benefitExplanation: fromJiraTextValue(fields[mapping.BENEFIT_EXPLANATION]),
+        urgencyExplanation: fromJiraTextValue(fields[mapping.URGENCY_EXPLANATION]),
+        ambitionExplanation: fromJiraTextValue(fields[mapping.AMBITION_EXPLANATION])
+      }
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function appendPriorityCalculationLog(entry) {
+  try {
+    const current = await storage.get(PRIORITY_CALC_LOGS_STORAGE_KEY);
+    const logs = Array.isArray(current) ? current : [];
+    const next = [
+      {
+        timestamp: new Date().toISOString(),
+        issueKey: String(entry?.issueKey || ''),
+        benefitScore: Number(entry?.benefitScore) || 1,
+        urgencyScore: Number(entry?.urgencyScore) || 1,
+        ambitionScore: Number(entry?.ambitionScore) || 1,
+        totalScore: Number(entry?.totalScore) || 1,
+        moscowLabel: String(entry?.moscowLabel || ''),
+        actorAccountId: String(entry?.actorAccountId || ''),
+        actorName: String(entry?.actorName || ''),
+        origin: String(entry?.origin || '')
+      },
+      ...logs
+    ].slice(0, MAX_LOG_ENTRIES);
+
+    await storage.set(PRIORITY_CALC_LOGS_STORAGE_KEY, next);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityCalculationLogs(limit = 100) {
+  try {
+    const current = await storage.get(PRIORITY_CALC_LOGS_STORAGE_KEY);
+    const logs = Array.isArray(current) ? current : [];
+    const safeLimit = Math.max(1, Math.min(Number(limit) || 100, MAX_LOG_ENTRIES));
+    const sliced = logs.slice(0, safeLimit);
+    const enrichedLogs = await enrichLogsWithDisplayNames(sliced);
+
+    return {
+      success: true,
+      logs: enrichedLogs
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getPriorityCalculationLogsForIssue(issueKey, limit = 50) {
   try {
     const normalizedIssueKey = String(issueKey || '').trim();
     if (!normalizedIssueKey) {
       return { success: false, error: 'Issue key is missing.' };
     }
 
-    const current = await storage.get(RISK_CALC_LOGS_STORAGE_KEY);
+    const current = await storage.get(PRIORITY_CALC_LOGS_STORAGE_KEY);
     const logs = Array.isArray(current) ? current : [];
     const safeLimit = Math.max(1, Math.min(Number(limit) || 50, MAX_LOG_ENTRIES));
     const filtered = logs

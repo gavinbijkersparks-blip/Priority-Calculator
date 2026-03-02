@@ -1,143 +1,173 @@
 import Resolver from '@forge/resolver';
-import { calculateRiskScore, getRiskPriority } from './utils/riskCalculator';
 import {
-  appendRiskCalculationLog,
-  getRiskCalculationLogs,
-  getRiskCalculationLogsForIssue,
-  getRiskScaleConfig,
-  getLegacyRiskValueSummary,
-  getAvailableRiskFields,
-  getRiskFieldMapping,
-  saveRiskFieldMapping,
-  verifyRiskFieldMapping,
-  saveRiskScaleConfig,
+  appendPriorityCalculationLog,
   getJiraIssueTypes,
-  getRiskVisibilityConfig,
-  migrateLegacyRiskValues,
-  resetRiskScaleConfig,
-  getRiskStateFromIssue,
-  saveRiskVisibilityConfig,
-  saveRiskToIssue,
-  setupCustomFields
+  getPriorityCalculationLogs,
+  getPriorityCalculationLogsForIssue,
+  getPriorityFieldMapping,
+  getPriorityScaleConfig,
+  getPriorityStateFromIssue,
+  getPriorityThresholdConfig,
+  getPriorityVisibilityConfig,
+  getAvailablePriorityFields,
+  resetPriorityScaleConfig,
+  resetPriorityThresholdConfig,
+  savePriorityFieldMapping,
+  savePriorityScaleConfig,
+  savePriorityThresholdConfig,
+  savePriorityToIssue,
+  savePriorityVisibilityConfig,
+  setupCustomFields,
+  verifyPriorityFieldMapping
 } from './setupFields';
+import { calculateTotalScore, getMoscowLabel } from './utils/priorityCalculator';
 
 const resolver = new Resolver();
 
-resolver.define('calculateRiskScore', async ({ payload }) => {
-  const { impact = 1, likelihood = 1 } = payload || {};
-  const riskScore = calculateRiskScore(impact, likelihood);
+resolver.define('calculatePriorityScore', async ({ payload }) => {
+  const {
+    benefitScore = 1,
+    urgencyScore = 1,
+    ambitionScore = 1,
+    thresholds = null
+  } = payload || {};
+
+  const totalScore = calculateTotalScore(benefitScore, urgencyScore, ambitionScore);
 
   return {
     success: true,
-    riskScore,
-    priority: getRiskPriority(riskScore)
+    totalScore,
+    moscowLabel: getMoscowLabel(totalScore, thresholds)
   };
 });
 
-resolver.define('setupFields', async () => {
+resolver.define('setupPriorityFields', async () => {
   return setupCustomFields();
 });
 
-resolver.define('getRiskState', async ({ payload }) => {
+resolver.define('getPriorityState', async ({ payload }) => {
   const { issueKey } = payload || {};
-  return getRiskStateFromIssue(issueKey);
+  return getPriorityStateFromIssue(issueKey);
 });
 
 resolver.define('getIssueTypes', async () => {
   return getJiraIssueTypes();
 });
 
-resolver.define('getRiskFields', async () => {
-  return getAvailableRiskFields();
+resolver.define('getPriorityFields', async () => {
+  return getAvailablePriorityFields();
 });
 
-resolver.define('getRiskMapping', async () => {
-  return getRiskFieldMapping();
+resolver.define('getPriorityMapping', async () => {
+  return getPriorityFieldMapping();
 });
 
-resolver.define('getRiskScaleConfig', async () => {
-  return getRiskScaleConfig();
+resolver.define('getPriorityScaleConfig', async () => {
+  return getPriorityScaleConfig();
 });
 
-resolver.define('saveRiskMapping', async ({ payload }) => {
+resolver.define('savePriorityMapping', async ({ payload }) => {
   const { mapping = {} } = payload || {};
-  return saveRiskFieldMapping(mapping);
+  return savePriorityFieldMapping(mapping);
 });
 
-resolver.define('verifyRiskMapping', async () => {
-  return verifyRiskFieldMapping();
+resolver.define('verifyPriorityMapping', async () => {
+  return verifyPriorityFieldMapping();
 });
 
-resolver.define('saveRiskScaleConfig', async ({ payload, context }) => {
+resolver.define('savePriorityScaleConfig', async ({ payload, context }) => {
   const { config = {} } = payload || {};
   const actorAccountId =
     context?.accountId ||
     context?.principal?.accountId ||
     '';
-  return saveRiskScaleConfig(config, actorAccountId);
+  return savePriorityScaleConfig(config, actorAccountId);
 });
 
-resolver.define('resetRiskScaleConfig', async ({ context }) => {
+resolver.define('resetPriorityScaleConfig', async ({ context }) => {
   const actorAccountId =
     context?.accountId ||
     context?.principal?.accountId ||
     '';
-  return resetRiskScaleConfig(actorAccountId);
+  return resetPriorityScaleConfig(actorAccountId);
 });
 
-resolver.define('getLegacyRiskSummary', async ({ payload }) => {
-  const { limit = 100 } = payload || {};
-  return getLegacyRiskValueSummary(limit);
+resolver.define('getPriorityThresholdConfig', async () => {
+  return getPriorityThresholdConfig();
 });
 
-resolver.define('migrateLegacyRiskValues', async ({ payload }) => {
-  const { limit = 200 } = payload || {};
-  return migrateLegacyRiskValues(limit);
+resolver.define('savePriorityThresholdConfig', async ({ payload, context }) => {
+  const { config = {} } = payload || {};
+  const actorAccountId =
+    context?.accountId ||
+    context?.principal?.accountId ||
+    '';
+  return savePriorityThresholdConfig(config, actorAccountId);
 });
 
-resolver.define('getRiskConfig', async () => {
-  return getRiskVisibilityConfig();
+resolver.define('resetPriorityThresholdConfig', async ({ context }) => {
+  const actorAccountId =
+    context?.accountId ||
+    context?.principal?.accountId ||
+    '';
+  return resetPriorityThresholdConfig(actorAccountId);
 });
 
-resolver.define('saveRiskConfig', async ({ payload }) => {
+resolver.define('getPriorityConfig', async () => {
+  return getPriorityVisibilityConfig();
+});
+
+resolver.define('savePriorityConfig', async ({ payload }) => {
   const { enabledIssueTypeIds = [] } = payload || {};
-  return saveRiskVisibilityConfig(enabledIssueTypeIds);
+  return savePriorityVisibilityConfig(enabledIssueTypeIds);
 });
 
-resolver.define('saveRisk', async ({ payload, context }) => {
+resolver.define('savePriority', async ({ payload, context }) => {
   const {
     issueKey,
-    impact = 1,
-    likelihood = 1,
+    benefitScore = 1,
+    urgencyScore = 1,
+    ambitionScore = 1,
+    benefitExplanation = '',
+    urgencyExplanation = '',
+    ambitionExplanation = '',
     origin = 'unknown',
     actorAccountId = '',
     actorName = ''
   } = payload || {};
-  const riskScore = calculateRiskScore(impact, likelihood);
-  const priority = getRiskPriority(riskScore);
+
+  const thresholdConfig = await getPriorityThresholdConfig();
+  const thresholds = thresholdConfig?.success ? thresholdConfig.config : null;
+
+  const totalScore = calculateTotalScore(benefitScore, urgencyScore, ambitionScore);
+  const moscowLabel = getMoscowLabel(totalScore, thresholds);
   const resolvedActorAccountId =
     actorAccountId ||
     context?.accountId ||
     context?.principal?.accountId ||
     '';
 
-  const saveResult = await saveRiskToIssue(
-    issueKey,
-    impact,
-    likelihood,
-    riskScore
-  );
+  const saveResult = await savePriorityToIssue(issueKey, {
+    benefitScore,
+    urgencyScore,
+    ambitionScore,
+    totalScore,
+    benefitExplanation,
+    urgencyExplanation,
+    ambitionExplanation
+  });
 
   if (!saveResult.success) {
     return saveResult;
   }
 
-  await appendRiskCalculationLog({
+  await appendPriorityCalculationLog({
     issueKey,
-    impact,
-    likelihood,
-    riskScore,
-    priority,
+    benefitScore,
+    urgencyScore,
+    ambitionScore,
+    totalScore,
+    moscowLabel,
     actorAccountId: resolvedActorAccountId,
     actorName,
     origin
@@ -145,19 +175,19 @@ resolver.define('saveRisk', async ({ payload, context }) => {
 
   return {
     success: true,
-    riskScore,
-    priority
+    totalScore,
+    moscowLabel
   };
 });
 
-resolver.define('getRiskLogs', async ({ payload }) => {
+resolver.define('getPriorityLogs', async ({ payload }) => {
   const { limit = 100 } = payload || {};
-  return getRiskCalculationLogs(limit);
+  return getPriorityCalculationLogs(limit);
 });
 
-resolver.define('getRiskLogsForIssue', async ({ payload }) => {
+resolver.define('getPriorityLogsForIssue', async ({ payload }) => {
   const { issueKey, limit = 50 } = payload || {};
-  return getRiskCalculationLogsForIssue(issueKey, limit);
+  return getPriorityCalculationLogsForIssue(issueKey, limit);
 });
 
 export const handler = resolver.getDefinitions();

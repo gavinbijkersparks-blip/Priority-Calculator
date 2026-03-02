@@ -1,65 +1,55 @@
-# Risk Score Calculator - Project Overview
+# Priority Dashboard - Project Overview
 
-## Samenvatting
-Deze Forge app voegt een Risk Score calculator toe aan Jira issues.
+Deze Forge app voegt een Priority Dashboard toe aan Jira issues met een MoSCoW-achtig model.
 
-Formule:
-`Risk Score = Impact x Likelihood`
+## Scoremodel
+- `Totaal score = Opbrengst + Urgentie + Ambitie`
+- MoSCoW-label op basis van thresholds:
+  - `Must >= must`
+  - `Should >= should`
+  - `Could >= could`
+  - `Won't < could`
 
-Doel:
-- Sneller risico's prioriteren
-- Uniforme scoring in teams
-- Betrouwbare opslag in Jira custom fields
-
-## Scope
-- Issue context panel met live score
-- Adminpagina voor zichtbaarheid per issue type
-- Setup/validatie van custom fields + mapping check
-- Beheer van schaalopties (impact/likelihood labels + values)
-- Legacy value scan/migratie
-- Opslaan en ophalen van scoredata op issue niveau
-
-## Belangrijkste componenten
+## Belangrijkste onderdelen
 - `static/issue-panel/src/main.jsx`
-  - UI voor `Impact`, `Likelihood`, score, status
+  - UI voor 3 scores, 3 optionele toelichtingen, totaalscore, MoSCoW-label
+  - autosave + handmatige save
 - `static/admin/src/main.jsx`
-  - issue type selectie
-  - field mapping + verify
-  - scale options
-  - legacy cleanup
+  - field mapping (7 velden)
+  - scale options (gedeeld voor alle 3 scores)
+  - threshold config
+  - visibility config
+  - calculation log
 - `static/issue-log-modal/src/main.jsx`
-  - issue-specifieke historiek/log modal
-- `src/utils/riskCalculator.js`
-  - berekening en prioriteitslabel
-- `src/utils/constants.js`
-  - velddefinities en thresholds
-- `src/setupFields.js`
-  - Jira API calls voor field setup + issue read/write
+  - issue-specifieke logweergave
 - `src/index.js`
-  - Forge resolvers
+  - Forge resolver endpoints
+- `src/setupFields.js`
+  - Jira API integratie voor fields, mapping, save/load, logs, config
+- `src/utils/constants.js`
+  - default velden, schaalopties, thresholds
+- `src/utils/priorityCalculator.js`
+  - totaalscore- en MoSCoW-logica
 
-## Data model
-Custom fields:
-- `Impact` (number)
-- `Likelihood` (number)
-- `Risk Score` (number, calculated)
+## Jira custom fields
+Number:
+- `Priority Dashboard - Opbrengst score`
+- `Priority Dashboard - Urgentie score`
+- `Priority Dashboard - Ambitie score`
+- `Priority Dashboard - Totaal score`
 
-Issue type visibility property:
-- Property key: `risk-score-calculator`
-- Flag: `enabled`
+Text:
+- `Priority Dashboard - Opbrengst toelichting`
+- `Priority Dashboard - Urgentie toelichting`
+- `Priority Dashboard - Ambitie toelichting`
 
-## Prioriteitslogica
-- `HIGH`: score `>= 400`
-- `MEDIUM`: score `>= 100` en `< 400`
-- `LOW`: score `< 100`
+## Opslag (app storage)
+- `priority-dashboard:field-mapping:v1`
+- `priority-dashboard:calculation-logs:v1`
+- `priority-dashboard:user-cache:v1`
+- `priority-dashboard:scale-config:v1`
+- `priority-dashboard:threshold-config:v1`
 
-## Operationeel
-- Auto-save in issue panel
-- Handmatige retry/save bij fouten
-- Setup in admin voor nieuwe Jira omgevingen
-
-## Productie aandachtspunten
-- Governance op scoring-richtlijnen
-- Periodieke review van thresholds
-- Impact van workflow/screen wijzigingen op fieldbeschikbaarheid
-- Releaseproces met staging-validatie voor elke wijziging
+## Issue type visibility
+- Property key: `priority-dashboard`
+- Property field: `enabled`

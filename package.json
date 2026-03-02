@@ -1,7 +1,7 @@
 {
-  "name": "jira-risk-score-calculator",
+  "name": "jira-priority-dashboard",
   "version": "1.0.0",
-  "description": "Risk Score Calculator for Jira - Impact x Likelihood",
+  "description": "Priority Dashboard for Jira - MoSCoW-style scoring",
   "main": "src/index.js",
   "scripts": {
     "build:ui": "vite build --config vite.issue-panel.config.js && vite build --config vite.issue-log-modal.config.js && vite build --config vite.admin.config.js",
@@ -12,9 +12,9 @@
   },
   "keywords": [
     "jira",
-    "risk",
-    "impact",
-    "likelihood",
+    "priority",
+    "moscow",
+    "score",
     "prioritization",
     "forge"
   ],

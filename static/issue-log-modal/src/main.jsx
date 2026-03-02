@@ -18,16 +18,18 @@ const I18N = {
     loadingLogs: 'Loading logs…',
     noLogsYet: 'No logs for this issue yet.',
     time: 'Time',
-    impact: 'Impact',
-    likelihood: 'Likelihood',
-    score: 'Score',
-    priority: 'Priority',
+    benefit: 'Opbrengst',
+    urgency: 'Urgentie',
+    ambition: 'Ambitie',
+    total: 'Totaal',
+    moscow: 'MoSCoW',
     by: 'By',
     origin: 'Origin',
     unknown: 'Unknown',
-    high: 'HIGH',
-    medium: 'MEDIUM',
-    low: 'LOW'
+    must: 'Must',
+    should: 'Should',
+    could: 'Could',
+    wont: "Won't"
   },
   nl: {
     missingIssueKey: 'Issue key ontbreekt.',
@@ -41,16 +43,18 @@ const I18N = {
     loadingLogs: 'Logs laden…',
     noLogsYet: 'Nog geen logs voor dit issue.',
     time: 'Tijd',
-    impact: 'Impact',
-    likelihood: 'Waarschijnlijkheid',
-    score: 'Score',
-    priority: 'Prioriteit',
+    benefit: 'Opbrengst',
+    urgency: 'Urgentie',
+    ambition: 'Ambitie',
+    total: 'Totaal',
+    moscow: 'MoSCoW',
     by: 'Door',
     origin: 'Herkomst',
     unknown: 'Onbekend',
-    high: 'HOOG',
-    medium: 'MIDDEL',
-    low: 'LAAG'
+    must: 'Must',
+    should: 'Should',
+    could: 'Could',
+    wont: "Won't"
   }
 };
 
@@ -64,12 +68,13 @@ const formatTimestamp = (value, language) => {
   return date.toLocaleString(language === 'nl' ? 'nl-NL' : 'en-GB', { hour12: false });
 };
 
-const localizePriority = (value, language) => {
+const localizeMoscow = (value, language) => {
   const strings = I18N[language] || I18N.en;
   const normalized = String(value || '').trim().toUpperCase();
-  if (normalized === 'HIGH') return strings.high;
-  if (normalized === 'MEDIUM') return strings.medium;
-  if (normalized === 'LOW') return strings.low;
+  if (normalized === 'MUST') return strings.must;
+  if (normalized === 'SHOULD') return strings.should;
+  if (normalized === 'COULD') return strings.could;
+  if (normalized === 'WONT') return strings.wont;
   return value || '-';
 };
 
@@ -94,7 +99,7 @@ function App() {
     setError('');
 
     try {
-      const result = await invoke('getRiskLogsForIssue', {
+      const result = await invoke('getPriorityLogsForIssue', {
         issueKey: key,
         limit: 100
       });
@@ -110,7 +115,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     (async () => {
@@ -163,10 +168,11 @@ function App() {
             <thead>
               <tr>
                 <th>{strings.time}</th>
-                <th>{strings.impact}</th>
-                <th>{strings.likelihood}</th>
-                <th>{strings.score}</th>
-                <th>{strings.priority}</th>
+                <th>{strings.benefit}</th>
+                <th>{strings.urgency}</th>
+                <th>{strings.ambition}</th>
+                <th>{strings.total}</th>
+                <th>{strings.moscow}</th>
                 <th>{strings.by}</th>
                 <th>{strings.origin}</th>
               </tr>
@@ -175,10 +181,11 @@ function App() {
               {logs.map((entry, index) => (
                 <tr key={`${entry.timestamp}-${index}`}>
                   <td>{formatTimestamp(entry.timestamp, language)}</td>
-                  <td>{String(entry.impact ?? '-')}</td>
-                  <td>{String(entry.likelihood ?? '-')}</td>
-                  <td>{String(entry.riskScore ?? '-')}</td>
-                  <td>{localizePriority(entry.priority, language)}</td>
+                  <td>{String(entry.benefitScore ?? '-')}</td>
+                  <td>{String(entry.urgencyScore ?? '-')}</td>
+                  <td>{String(entry.ambitionScore ?? '-')}</td>
+                  <td>{String(entry.totalScore ?? '-')}</td>
+                  <td>{localizeMoscow(entry.moscowLabel, language)}</td>
                   <td>{entry.actorName || entry.actorAccountId || strings.unknown}</td>
                   <td>{entry.origin || '-'}</td>
                 </tr>
