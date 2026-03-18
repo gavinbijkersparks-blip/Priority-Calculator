@@ -7,11 +7,11 @@ import './styles.css';
 
 const I18N = {
   en: {
-    title: 'Priority Dashboard Configuration',
+    title: 'Priority Calculator Configuration',
     loadError: 'Load error',
     saveError: 'Save error',
     fieldMappingTitle: 'Field Mapping',
-    fieldMappingSubtitle: 'Map the dashboard to Jira fields. Score fields must be number fields, explanation fields must be text fields.',
+    fieldMappingSubtitle: 'Map the dashboard to Jira fields. Score fields must be number fields, the priority label field must be a single-select field, and explanation fields must be text fields.',
     loadingFields: 'Loading fields and mapping…',
     selectField: 'Select field',
     saveFieldMapping: 'Save field mapping',
@@ -33,6 +33,7 @@ const I18N = {
     urgencyScoreField: 'Urgentie score field',
     ambitionScoreField: 'Ambitie score field',
     totalScoreField: 'Totaal score field',
+    moscowLabelField: 'Prioriteitslabel field',
     benefitExplanationField: 'Opbrengst toelichting field',
     urgencyExplanationField: 'Urgentie toelichting field',
     ambitionExplanationField: 'Ambitie toelichting field',
@@ -77,12 +78,12 @@ const I18N = {
     thresholdSaveFailed: 'Failed to save thresholds.',
 
     visibilityTitle: 'Visibility Configuration',
-    visibilitySubtitle: 'Choose issue types where Priority Dashboard should be visible in the issue sidebar.',
+    visibilitySubtitle: 'Choose issue types where Priority Calculator should be visible in the issue sidebar.',
     loadingIssueTypes: 'Loading issue types…',
     saveConfiguration: 'Save configuration',
     savingConfiguration: 'Saving configuration…',
-    configurationSavedHidden: 'Configuration saved. Priority Dashboard is hidden for all issue types.',
-    configurationSavedEnabled: 'Configuration saved. Priority Dashboard is enabled for',
+    configurationSavedHidden: 'Configuration saved. Priority Calculator is hidden for all issue types.',
+    configurationSavedEnabled: 'Configuration saved. Priority Calculator is enabled for',
     issueTypeCountSuffix: 'issue type(s).',
     visibilitySaveFailed: 'Failed to save visibility configuration.',
 
@@ -108,11 +109,11 @@ const I18N = {
     wont: "Won't"
   },
   nl: {
-    title: 'Priority Dashboard Configuratie',
+    title: 'Priority Calculator Configuratie',
     loadError: 'Laadfout',
     saveError: 'Opslagfout',
     fieldMappingTitle: 'Veldkoppeling',
-    fieldMappingSubtitle: 'Koppel het dashboard aan Jira-velden. Scorevelden moeten nummervelden zijn, toelichtingsvelden tekstvelden.',
+    fieldMappingSubtitle: 'Koppel het dashboard aan Jira-velden. Scorevelden moeten nummervelden zijn, het prioriteitslabel moet een single-select veld zijn en toelichtingsvelden moeten tekstvelden zijn.',
     loadingFields: 'Velden en koppeling laden…',
     selectField: 'Selecteer veld',
     saveFieldMapping: 'Veldkoppeling opslaan',
@@ -134,6 +135,7 @@ const I18N = {
     urgencyScoreField: 'Urgentie score veld',
     ambitionScoreField: 'Ambitie score veld',
     totalScoreField: 'Totaal score veld',
+    moscowLabelField: 'Prioriteitslabel veld',
     benefitExplanationField: 'Opbrengst toelichting veld',
     urgencyExplanationField: 'Urgentie toelichting veld',
     ambitionExplanationField: 'Ambitie toelichting veld',
@@ -178,12 +180,12 @@ const I18N = {
     thresholdSaveFailed: 'Drempels opslaan mislukt.',
 
     visibilityTitle: 'Zichtbaarheidsconfiguratie',
-    visibilitySubtitle: 'Kies issue types waarvoor Priority Dashboard zichtbaar is in de issue-zijbalk.',
+    visibilitySubtitle: 'Kies issue types waarvoor Priority Calculator zichtbaar is in de issue-zijbalk.',
     loadingIssueTypes: 'Issue types laden…',
     saveConfiguration: 'Configuratie opslaan',
     savingConfiguration: 'Configuratie opslaan…',
-    configurationSavedHidden: 'Configuratie opgeslagen. Priority Dashboard is verborgen voor alle issue types.',
-    configurationSavedEnabled: 'Configuratie opgeslagen. Priority Dashboard is ingeschakeld voor',
+    configurationSavedHidden: 'Configuratie opgeslagen. Priority Calculator is verborgen voor alle issue types.',
+    configurationSavedEnabled: 'Configuratie opgeslagen. Priority Calculator is ingeschakeld voor',
     issueTypeCountSuffix: 'issue type(s).',
     visibilitySaveFailed: 'Zichtbaarheidsconfiguratie opslaan mislukt.',
 
@@ -235,14 +237,16 @@ const mappingLabels = {
   URGENCY_SCORE: 'urgencyScoreField',
   AMBITION_SCORE: 'ambitionScoreField',
   TOTAL_SCORE: 'totalScoreField',
+  MOSCOW_LABEL: 'moscowLabelField',
   BENEFIT_EXPLANATION: 'benefitExplanationField',
   URGENCY_EXPLANATION: 'urgencyExplanationField',
   AMBITION_EXPLANATION: 'ambitionExplanationField'
 };
 
 const scoreMappingKeys = ['BENEFIT_SCORE', 'URGENCY_SCORE', 'AMBITION_SCORE', 'TOTAL_SCORE'];
+const labelMappingKeys = ['MOSCOW_LABEL'];
 const explanationMappingKeys = ['BENEFIT_EXPLANATION', 'URGENCY_EXPLANATION', 'AMBITION_EXPLANATION'];
-const allMappingKeys = [...scoreMappingKeys, ...explanationMappingKeys];
+const allMappingKeys = [...scoreMappingKeys, ...labelMappingKeys, ...explanationMappingKeys];
 
 const buildEmptyScaleOption = () => ({
   value: '',
@@ -287,6 +291,7 @@ function App() {
   const strings = I18N[language] || I18N.en;
 
   const [availableNumberFields, setAvailableNumberFields] = useState([]);
+  const [availableSingleSelectFields, setAvailableSingleSelectFields] = useState([]);
   const [availableTextFields, setAvailableTextFields] = useState([]);
   const [mapping, setMapping] = useState({});
   const [fieldsLoading, setFieldsLoading] = useState(true);
@@ -326,19 +331,19 @@ function App() {
   const [logs, setLogs] = useState([]);
 
   const fieldsById = useMemo(() => {
-    const allFields = [...availableNumberFields, ...availableTextFields];
+    const allFields = [...availableNumberFields, ...availableSingleSelectFields, ...availableTextFields];
     return new Map(allFields.map((field) => [String(field.id), field]));
-  }, [availableNumberFields, availableTextFields]);
+  }, [availableNumberFields, availableSingleSelectFields, availableTextFields]);
 
   const hasDuplicateFieldNames = useMemo(() => {
-    const allFields = [...availableNumberFields, ...availableTextFields];
+    const allFields = [...availableNumberFields, ...availableSingleSelectFields, ...availableTextFields];
     const counts = new Map();
     for (const field of allFields) {
       const name = String(field?.name || '');
       counts.set(name, (counts.get(name) || 0) + 1);
     }
     return [...counts.values()].some((count) => count > 1);
-  }, [availableNumberFields, availableTextFields]);
+  }, [availableNumberFields, availableSingleSelectFields, availableTextFields]);
 
   useEffect(() => {
     (async () => {
@@ -371,7 +376,8 @@ function App() {
       if (!mappingResult?.success) throw new Error(mappingResult?.error || strings.loadMappingFailed);
 
       setAvailableNumberFields(fieldsResult.numberFields || []);
-      setAvailableTextFields(fieldsResult.textFields || []);
+      setAvailableSingleSelectFields(fieldsResult.singleSelectFields || []);
+      setAvailableTextFields(fieldsResult.textAreaFields || fieldsResult.textFields || []);
 
       const next = {};
       for (const key of allMappingKeys) {
@@ -711,6 +717,23 @@ function App() {
                 >
                   <option value="">{strings.selectField}</option>
                   {availableNumberFields.map((field) => (
+                    <option key={field.id} value={field.id}>
+                      {field.name} ({field.id})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+
+            {labelMappingKeys.map((key) => (
+              <label key={key}>
+                <span>{strings[mappingLabels[key]]}</span>
+                <select
+                  value={mapping[key] || ''}
+                  onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))}
+                >
+                  <option value="">{strings.selectField}</option>
+                  {availableSingleSelectFields.map((field) => (
                     <option key={field.id} value={field.id}>
                       {field.name} ({field.id})
                     </option>

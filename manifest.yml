@@ -1,9 +1,9 @@
 modules:
   jira:issueContext:
     - key: prio-dash-ctx
-      title: Priority Dashboard
-      label: Priority Dashboard
-      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      title: Priority Calculator
+      label: Priority Calculator
+      icon: https://www.communardo.ch/hs-fs/hubfs/COM-2025-Logo-RZ-RGB_Communardo-Heartcloud-gradient.png?width=149&height=149&name=COM-2025-Logo-RZ-RGB_Communardo-Heartcloud-gradient.png
       resource: prio-issue-panel
       resolver:
         function: prio-dash-resolver
@@ -16,7 +16,7 @@ modules:
 
   jira:adminPage:
     - key: prio-dash-admin
-      title: Priority Dashboard Configuration
+      title: Priority Calculator Configuration
       resource: prio-admin-page
       resolver:
         function: prio-dash-resolver
@@ -28,6 +28,8 @@ modules:
 resources:
   - key: prio-issue-panel
     path: static/issue-panel/dist
+  - key: prio-help-modal
+    path: static/priority-help-modal/dist
   - key: prio-log-modal
     path: static/issue-log-modal/dist
   - key: prio-admin-page

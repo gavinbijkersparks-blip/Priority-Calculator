@@ -1,4 +1,4 @@
-# Priority Dashboard for Jira
+# Priority Calculator for Jira
 
 Een Jira Forge app voor prioritering met een MoSCoW-achtig model.
 
@@ -22,7 +22,7 @@ Een Jira Forge app voor prioritering met een MoSCoW-achtig model.
 2. `npm run build`
 3. `npm run deploy`
 4. `npm run forge:install`
-5. Configureer de app via `Priority Dashboard Configuration` in Jira admin.
+5. Configureer de app via `Priority Calculator Configuration` in Jira admin.
 
 ## Structuur
 - `static/issue-panel/src/main.jsx`

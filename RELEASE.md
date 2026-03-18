@@ -1,4 +1,4 @@
-# Release Procedure - Priority Dashboard
+# Release Procedure - Priority Calculator
 
 Standaard werkwijze voor release naar productie.
 
@@ -13,7 +13,7 @@ Standaard werkwijze voor release naar productie.
 
 ## 3. Post-deploy checks
 In Jira Admin:
-- open `Priority Dashboard Configuration`
+- open `Priority Calculator Configuration`
 - run `Create default fields and map them`
 - controleer mapping van 7 velden
 - controleer thresholds en scale options

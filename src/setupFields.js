@@ -3,6 +3,7 @@ import {
   DEFAULT_PRIORITY_SCALE_OPTIONS,
   DEFAULT_PRIORITY_THRESHOLDS,
   EXPLANATION_MAX_LENGTH,
+  MOSCOW_LABEL_OPTIONS,
   PRIORITY_FIELDS
 } from './utils/constants';
 import { normalizeThresholds, validateThresholds } from './utils/priorityCalculator';
@@ -14,7 +15,10 @@ const PRIORITY_CALC_LOGS_STORAGE_KEY = 'priority-dashboard:calculation-logs:v1';
 const PRIORITY_USER_CACHE_STORAGE_KEY = 'priority-dashboard:user-cache:v1';
 const PRIORITY_SCALE_CONFIG_STORAGE_KEY = 'priority-dashboard:scale-config:v1';
 const PRIORITY_THRESHOLD_CONFIG_STORAGE_KEY = 'priority-dashboard:threshold-config:v1';
-const MANAGED_DESCRIPTION_MARKER = 'Managed by Priority Dashboard.';
+const MANAGED_DESCRIPTION_MARKERS = [
+  'Managed by Priority Calculator.',
+  'Managed by Priority Dashboard.'
+];
 const MAX_LOG_ENTRIES = 500;
 
 const NUMBER_MAPPING_KEYS = [
@@ -23,12 +27,14 @@ const NUMBER_MAPPING_KEYS = [
   'AMBITION_SCORE',
   'TOTAL_SCORE'
 ];
+const LABEL_MAPPING_KEYS = ['MOSCOW_LABEL'];
 const TEXT_MAPPING_KEYS = [
   'BENEFIT_EXPLANATION',
   'URGENCY_EXPLANATION',
   'AMBITION_EXPLANATION'
 ];
-const PRIORITY_FIELD_KEYS = [...NUMBER_MAPPING_KEYS, ...TEXT_MAPPING_KEYS];
+const PRIORITY_FIELD_KEYS = [...NUMBER_MAPPING_KEYS, ...LABEL_MAPPING_KEYS, ...TEXT_MAPPING_KEYS];
+const SINGLE_SELECT_CUSTOM_TYPE_MARKERS = [':select'];
 
 async function createCustomField(name, description, type = 'number') {
   let fieldType = 'com.atlassian.jira.plugin.system.customfieldtypes:float';
@@ -43,6 +49,20 @@ async function createCustomField(name, description, type = 'number') {
     searcherCandidates = [
       'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher',
       'com.atlassian.jira.plugin.system.customfieldtypes:exacttextsearcher',
+      null
+    ];
+  } else if (type === 'text') {
+    fieldType = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield';
+    searcherCandidates = [
+      'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher',
+      'com.atlassian.jira.plugin.system.customfieldtypes:exacttextsearcher',
+      null
+    ];
+  } else if (type === 'single_select') {
+    fieldType = 'com.atlassian.jira.plugin.system.customfieldtypes:select';
+    searcherCandidates = [
+      'com.atlassian.jira.plugin.system.customfieldtypes:multiselectsearcher',
+      'com.atlassian.jira.plugin.system.customfieldtypes:textsearcher',
       null
     ];
   }
@@ -95,15 +115,205 @@ function isCustomField(field) {
 }
 
 function isNumberCustomField(field) {
-  return isCustomField(field) && field?.schema?.type === 'number';
+  return isCustomField(field) && String(field?.schema?.type || field?.schemaType || '') === 'number';
 }
 
 function isTextCustomField(field) {
-  return isCustomField(field) && field?.schema?.type === 'string';
+  return isCustomField(field) && String(field?.schema?.type || field?.schemaType || '') === 'string';
 }
 
 function isTextareaCustomField(field) {
-  return isTextCustomField(field) && String(field?.schema?.custom || '').includes(':textarea');
+  return isTextCustomField(field) && String(field?.schema?.custom || field?.customType || '').includes(':textarea');
+}
+
+function isSingleLineTextCustomField(field) {
+  return isTextCustomField(field) && String(field?.schema?.custom || field?.customType || '').includes(':textfield');
+}
+
+function isSingleSelectCustomField(field) {
+  const customType = String(field?.schema?.custom || field?.customType || '');
+  if (!isCustomField(field)) return false;
+  return SINGLE_SELECT_CUSTOM_TYPE_MARKERS.some((marker) => customType.includes(marker));
+}
+
+function fieldMatchesManagedType(field, expectedType) {
+  if (expectedType === 'number') return isNumberCustomField(field);
+  if (expectedType === 'textarea') return isTextareaCustomField(field);
+  if (expectedType === 'text') return isSingleLineTextCustomField(field);
+  if (expectedType === 'single_select') return isSingleSelectCustomField(field);
+  return false;
+}
+
+function normalizeMoscowLabelKey(value) {
+  return String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '');
+}
+
+function normalizeMoscowLabel(value) {
+  const normalizedKey = normalizeMoscowLabelKey(value);
+  if (normalizedKey === 'WONT') return 'WONT';
+  if (normalizedKey === 'COULD') return 'COULD';
+  if (normalizedKey === 'SHOULD') return 'SHOULD';
+  if (normalizedKey === 'MUST') return 'MUST';
+  return '';
+}
+
+async function getFieldContexts(fieldId) {
+  const response = await api.asApp().requestJira(route`/rest/api/3/field/${fieldId}/context`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to load field contexts for ${fieldId}: ${error}`);
+  }
+
+  const body = await response.json();
+  return Array.isArray(body?.values) ? body.values : [];
+}
+
+async function createFieldContext(fieldId, name) {
+  const response = await api.asApp().requestJira(route`/rest/api/3/field/${fieldId}/context`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name,
+      description: `Managed by Priority Calculator for ${name}.`,
+      isGlobalContext: true
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to create field context for ${fieldId}: ${error}`);
+  }
+
+  const body = await response.json();
+  const createdContextId = body?.id || body?.contextId || body?.values?.[0]?.id;
+  if (!createdContextId) {
+    throw new Error(`Field context created for ${fieldId}, but no context id was returned.`);
+  }
+
+  return {
+    id: String(createdContextId),
+    name
+  };
+}
+
+async function getOrCreateGlobalFieldContext(fieldId, fieldName) {
+  const contexts = await getFieldContexts(fieldId);
+  const globalContext =
+    contexts.find((context) => context?.isGlobalContext) ||
+    contexts.find((context) => String(context?.projectIds?.length || 0) === '0');
+
+  if (globalContext) {
+    return {
+      id: String(globalContext.id),
+      name: String(globalContext.name || `${fieldName} context`)
+    };
+  }
+
+  return createFieldContext(fieldId, `${fieldName} context`);
+}
+
+async function getFieldContextOptions(fieldId, contextId) {
+  const response = await api.asApp().requestJira(
+    route`/rest/api/3/field/${fieldId}/context/${contextId}/option`,
+    {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to load field options for ${fieldId}: ${error}`);
+  }
+
+  const body = await response.json();
+  return Array.isArray(body?.values) ? body.values : [];
+}
+
+async function createFieldContextOptions(fieldId, contextId, options) {
+  const response = await api.asApp().requestJira(
+    route`/rest/api/3/field/${fieldId}/context/${contextId}/option`,
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        options: options.map((value) => ({ value }))
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to create field options for ${fieldId}: ${error}`);
+  }
+
+  const body = await response.json();
+  return Array.isArray(body?.options) ? body.options : [];
+}
+
+async function ensureMoscowLabelOptions(fieldId, fieldName) {
+  const context = await getOrCreateGlobalFieldContext(fieldId, fieldName);
+  const existingOptions = await getFieldContextOptions(fieldId, context.id);
+  const byValue = new Map(
+    existingOptions
+      .map((option) => [normalizeMoscowLabel(option?.value || option?.name || ''), option])
+      .filter(([value]) => Boolean(value))
+  );
+
+  const missingValues = MOSCOW_LABEL_OPTIONS.filter((value) => !byValue.has(value));
+  if (missingValues.length > 0) {
+    const createdOptions = await createFieldContextOptions(fieldId, context.id, missingValues);
+    for (const option of createdOptions) {
+      byValue.set(String(option?.value || '').trim().toUpperCase(), option);
+    }
+  }
+
+  return {
+    contextId: String(context.id),
+    optionsByValue: byValue
+  };
+}
+
+async function getMoscowLabelFieldOption(fieldId, fieldName, labelValue) {
+  const normalized = normalizeMoscowLabel(labelValue);
+  if (!normalized) return null;
+
+  const { optionsByValue } = await ensureMoscowLabelOptions(fieldId, fieldName);
+  const option = optionsByValue.get(normalized);
+
+  if (!option?.id) {
+    throw new Error(`Option ${normalized} is missing on ${fieldName} (${fieldId}).`);
+  }
+
+  return {
+    id: String(option.id),
+    value: normalized
+  };
+}
+
+function fromJiraMoscowValue(value) {
+  if (typeof value === 'string') return normalizeMoscowLabel(value);
+  if (value && typeof value === 'object') {
+    return normalizeMoscowLabel(value.value || value.name || '');
+  }
+  return '';
 }
 
 function toAdfDocument(text) {
@@ -215,6 +425,18 @@ async function resolveAndValidateMapping(mapping) {
       return {
         valid: false,
         error: `${field.name} (${field.id}) is not a number custom field.`
+      };
+    }
+  }
+
+  for (const key of LABEL_MAPPING_KEYS) {
+    const id = normalized[key];
+    const field = byId.get(id);
+    if (!field) return { valid: false, error: `Field ${id} does not exist.` };
+    if (!isSingleSelectCustomField(field)) {
+      return {
+        valid: false,
+        error: `${field.name} (${field.id}) is not a single-select custom field.`
       };
     }
   }
@@ -540,7 +762,7 @@ export async function verifyPriorityFieldMapping() {
     if (!mapping || !hasCompleteMapping(mapping)) {
       return {
         success: false,
-        error: 'Priority field mapping is not configured. Open Priority Dashboard Configuration and map fields.'
+        error: 'Priority field mapping is not configured. Open Priority Calculator Configuration and map fields.'
       };
     }
 
@@ -571,6 +793,17 @@ export async function verifyPriorityFieldMapping() {
       return {
         success: false,
         error: `Mapped score field(s) are not number custom fields: ${nonNumber.join('; ')}`
+      };
+    }
+
+    const nonLabelText = LABEL_MAPPING_KEYS
+      .filter((key) => !isSingleSelectCustomField(fieldMeta[key]))
+      .map((key) => `${key}=${fieldMeta[key]?.name} (${fieldMeta[key]?.id})`);
+
+    if (nonLabelText.length > 0) {
+      return {
+        success: false,
+        error: `Mapped label field(s) are not single-select custom fields: ${nonLabelText.join('; ')}`
       };
     }
 
@@ -752,7 +985,8 @@ export async function getAvailablePriorityFields() {
         id: String(field.id),
         name: field.name,
         description: field.description || '',
-        schemaType: String(field?.schema?.type || '')
+        schemaType: String(field?.schema?.type || ''),
+        customType: String(field?.schema?.custom || '')
       }))
       .sort((a, b) => {
         const nameCompare = a.name.localeCompare(b.name);
@@ -762,8 +996,19 @@ export async function getAvailablePriorityFields() {
 
     const numberFields = normalized.filter((field) => field.schemaType === 'number');
     const textFields = normalized.filter((field) => field.schemaType === 'string');
+    const singleSelectFields = normalized.filter((field) => isSingleSelectCustomField(field));
+    const singleLineTextFields = textFields.filter((field) => isSingleLineTextCustomField(field));
+    const textAreaFields = textFields.filter((field) => isTextareaCustomField(field));
 
-    return { success: true, fields: normalized, numberFields, textFields };
+    return {
+      success: true,
+      fields: normalized,
+      numberFields,
+      singleSelectFields,
+      textFields,
+      singleLineTextFields,
+      textAreaFields
+    };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -807,12 +1052,19 @@ export async function setupCustomFields() {
       let field = fields.find(
         (candidate) =>
           candidate.name === config.name &&
-          String(candidate.description || '').includes(MANAGED_DESCRIPTION_MARKER)
+          fieldMatchesManagedType(candidate, config.type) &&
+          MANAGED_DESCRIPTION_MARKERS.some((marker) =>
+            String(candidate.description || '').includes(marker)
+          )
       );
 
       if (!field) {
         field = await createCustomField(config.name, config.description, config.type);
         createdCount += 1;
+      }
+
+      if (config.type === 'single_select') {
+        await ensureMoscowLabelOptions(String(field.id), config.name);
       }
 
       fieldIds[key] = String(field.id);
@@ -839,7 +1091,7 @@ export async function savePriorityToIssue(issueKey, values) {
     if (!mapping || !hasCompleteMapping(mapping)) {
       return {
         success: false,
-        error: 'Priority field mapping is not configured. Open Priority Dashboard Configuration and map fields.'
+        error: 'Priority field mapping is not configured. Open Priority Calculator Configuration and map fields.'
       };
     }
 
@@ -848,6 +1100,12 @@ export async function savePriorityToIssue(issueKey, values) {
     const benefitExplanationField = byId.get(String(mapping.BENEFIT_EXPLANATION));
     const urgencyExplanationField = byId.get(String(mapping.URGENCY_EXPLANATION));
     const ambitionExplanationField = byId.get(String(mapping.AMBITION_EXPLANATION));
+    const moscowLabelField = byId.get(String(mapping.MOSCOW_LABEL));
+    const moscowLabelOption = await getMoscowLabelFieldOption(
+      String(mapping.MOSCOW_LABEL),
+      String(moscowLabelField?.name || 'Prioriteitslabel'),
+      values?.moscowLabel
+    );
 
     const payload = {
       fields: {
@@ -855,6 +1113,9 @@ export async function savePriorityToIssue(issueKey, values) {
         [mapping.URGENCY_SCORE]: Number(values?.urgencyScore),
         [mapping.AMBITION_SCORE]: Number(values?.ambitionScore),
         [mapping.TOTAL_SCORE]: Number(values?.totalScore),
+        [mapping.MOSCOW_LABEL]: moscowLabelOption
+          ? { id: moscowLabelOption.id }
+          : null,
         [mapping.BENEFIT_EXPLANATION]: toJiraTextValue(
           sanitizeExplanation(values?.benefitExplanation),
           benefitExplanationField
@@ -901,7 +1162,7 @@ export async function getPriorityStateFromIssue(issueKey) {
     if (!mapping || !hasCompleteMapping(mapping)) {
       return {
         success: false,
-        error: 'Priority field mapping is not configured. Open Priority Dashboard Configuration and map fields.'
+        error: 'Priority field mapping is not configured. Open Priority Calculator Configuration and map fields.'
       };
     }
 
@@ -924,6 +1185,7 @@ export async function getPriorityStateFromIssue(issueKey) {
         urgencyScore: Number(fields[mapping.URGENCY_SCORE]) || defaults.urgencyDefault,
         ambitionScore: Number(fields[mapping.AMBITION_SCORE]) || defaults.ambitionDefault,
         totalScore: Number(fields[mapping.TOTAL_SCORE]) || null,
+        moscowLabel: fromJiraMoscowValue(fields[mapping.MOSCOW_LABEL]),
         benefitExplanation: fromJiraTextValue(fields[mapping.BENEFIT_EXPLANATION]),
         urgencyExplanation: fromJiraTextValue(fields[mapping.URGENCY_EXPLANATION]),
         ambitionExplanation: fromJiraTextValue(fields[mapping.AMBITION_EXPLANATION])

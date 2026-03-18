@@ -152,6 +152,7 @@ resolver.define('savePriority', async ({ payload, context }) => {
     urgencyScore,
     ambitionScore,
     totalScore,
+    moscowLabel,
     benefitExplanation,
     urgencyExplanation,
     ambitionExplanation

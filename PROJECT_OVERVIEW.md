@@ -1,6 +1,6 @@
-# Priority Dashboard - Project Overview
+# Priority Calculator - Project Overview
 
-Deze Forge app voegt een Priority Dashboard toe aan Jira issues met een MoSCoW-achtig model.
+Deze Forge app voegt een Priority Calculator toe aan Jira issues met een MoSCoW-achtig model.
 
 ## Scoremodel
 - `Totaal score = Opbrengst + Urgentie + Ambitie`
@@ -33,15 +33,15 @@ Deze Forge app voegt een Priority Dashboard toe aan Jira issues met een MoSCoW-a
 
 ## Jira custom fields
 Number:
-- `Priority Dashboard - Opbrengst score`
-- `Priority Dashboard - Urgentie score`
-- `Priority Dashboard - Ambitie score`
-- `Priority Dashboard - Totaal score`
+- `Priority Calculator - Opbrengst score`
+- `Priority Calculator - Urgentie score`
+- `Priority Calculator - Ambitie score`
+- `Priority Calculator - Totaal score`
 
 Text:
-- `Priority Dashboard - Opbrengst toelichting`
-- `Priority Dashboard - Urgentie toelichting`
-- `Priority Dashboard - Ambitie toelichting`
+- `Priority Calculator - Opbrengst toelichting`
+- `Priority Calculator - Urgentie toelichting`
+- `Priority Calculator - Ambitie toelichting`
 
 ## Opslag (app storage)
 - `priority-dashboard:field-mapping:v1`

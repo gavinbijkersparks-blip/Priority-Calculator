@@ -23,6 +23,30 @@ body {
   color: #44546f;
 }
 
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.help-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #8590a2;
+  background: #ffffff;
+  color: #172b4d;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.help-icon-btn:hover {
+  background: #f7f8f9;
+}
+
 .score-card {
   border: 1px solid #dfe1e6;
   border-radius: 10px;

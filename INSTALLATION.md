@@ -1,4 +1,4 @@
-# Priority Dashboard - Installatie Instructies
+# Priority Calculator - Installatie Instructies
 
 ## Vereisten
 - Node.js + npm
@@ -16,7 +16,7 @@
    - `npm run forge:install`
 
 ## Eerste configuratie in Jira
-1. Open `Apps -> Priority Dashboard Configuration`.
+1. Open `Apps -> Priority Calculator Configuration`.
 2. Klik `Create default fields and map them`.
 3. Controleer 7 veldkoppelingen.
 4. Stel issue type visibility in.

@@ -1,4 +1,4 @@
-# Priority Dashboard Deployment Checklist
+# Priority Calculator Deployment Checklist
 
 ## Build en deploy
 - [ ] `npm install` uitgevoerd
@@ -7,7 +7,7 @@
 - [ ] App geïnstalleerd op juiste Jira site
 
 ## Jira admin
-- [ ] `Priority Dashboard Configuration` geopend
+- [ ] `Priority Calculator Configuration` geopend
 - [ ] `Create default fields and map them` uitgevoerd
 - [ ] 7 velden correct gekoppeld
 - [ ] visibility issue types ingesteld

@@ -1,4 +1,4 @@
-# Priority Dashboard - Plan Samenvatting
+# Priority Calculator - Plan Samenvatting
 
 ## Doel
 Een productieklare Jira Forge app voor prioritering met:

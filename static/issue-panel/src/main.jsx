@@ -7,10 +7,10 @@ import './styles.css';
 
 const I18N = {
   en: {
-    title: 'Priority Dashboard',
+    title: 'Priority Calculator',
     subtitle: 'Prioritize work with live scoring and automatic save.',
     issueNotFound: 'Issue key not found. Refresh and try again.',
-    loadFailed: 'Failed to load current Priority Dashboard values.',
+    loadFailed: 'Failed to load current Priority Calculator values.',
     contextError: 'Context error',
     saveFailed: 'Save failed.',
     saveError: 'Save error',
@@ -30,6 +30,8 @@ const I18N = {
     hideExplanation: 'Hide explanation',
     saveNow: 'Save now',
     resetToIssue: 'Reset to issue values',
+    help: 'Help',
+    scoringGuide: 'Scoring guide',
     logs: 'Logs',
     retrySave: 'Retry save',
     saving: 'Saving',
@@ -47,10 +49,10 @@ const I18N = {
     wont: "Won't"
   },
   nl: {
-    title: 'Priority Dashboard',
+    title: 'Priority Calculator',
     subtitle: 'Prioriteer werk met live scoring en automatisch opslaan.',
     issueNotFound: 'Issue key niet gevonden. Ververs en probeer opnieuw.',
-    loadFailed: 'Huidige Priority Dashboard-waarden konden niet worden geladen.',
+    loadFailed: 'Huidige Priority Calculator-waarden konden niet worden geladen.',
     contextError: 'Contextfout',
     saveFailed: 'Opslaan mislukt.',
     saveError: 'Opslagfout',
@@ -70,6 +72,8 @@ const I18N = {
     hideExplanation: 'Toelichting verbergen',
     saveNow: 'Nu opslaan',
     resetToIssue: 'Reset naar issue-waarden',
+    help: 'Help',
+    scoringGuide: 'Scoringsuitleg',
     logs: 'Logs',
     retrySave: 'Opnieuw opslaan',
     saving: 'Opslaan',
@@ -496,10 +500,28 @@ function App() {
     await modal.open();
   };
 
+  const openHelpModal = async () => {
+    const modal = new Modal({
+      resource: 'prio-help-modal',
+      size: 'max'
+    });
+    await modal.open();
+  };
+
   return (
     <div className="panel">
-      <h2 className="title">{strings.title}</h2>
-      <p className="subtitle">{strings.subtitle}</p>
+      <div className="panel-head">
+        <p className="subtitle">{strings.subtitle}</p>
+        <button
+          type="button"
+          className="help-icon-btn"
+          aria-label={strings.scoringGuide}
+          title={strings.scoringGuide}
+          onClick={openHelpModal}
+        >
+          ?
+        </button>
+      </div>
 
       {loadError ? <div className="error-box">{loadError}</div> : null}
 

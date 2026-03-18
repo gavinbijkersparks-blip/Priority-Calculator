@@ -1,4 +1,4 @@
-# Priority Dashboard Quick Reference
+# Priority Calculator Quick Reference
 
 ## Formule
 `Totaal score = Opbrengst + Urgentie + Ambitie`
