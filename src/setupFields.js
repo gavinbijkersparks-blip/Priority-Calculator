@@ -475,16 +475,19 @@ async function getResolvedPriorityFieldMapping() {
 }
 
 function getDefaultPriorityScaleConfig() {
+  const defaults = DEFAULT_PRIORITY_SCALE_OPTIONS.map((option) => ({
+    value: Number(option.value),
+    labelDefault: String(option.labelDefault || ''),
+    labels: {
+      en: String(option?.labels?.en || ''),
+      nl: String(option?.labels?.nl || '')
+    }
+  }));
   return {
-    version: 1,
-    scoreOptions: DEFAULT_PRIORITY_SCALE_OPTIONS.map((option) => ({
-      value: Number(option.value),
-      labelDefault: String(option.labelDefault || ''),
-      labels: {
-        en: String(option?.labels?.en || ''),
-        nl: String(option?.labels?.nl || '')
-      }
-    })),
+    version: 2,
+    benefitScoreOptions: defaults,
+    urgencyScoreOptions: defaults,
+    ambitionScoreOptions: defaults,
     updatedAt: null,
     updatedBy: ''
   };
@@ -503,13 +506,26 @@ function normalizeScaleOption(option) {
 
 function normalizeScaleConfigInput(inputConfig) {
   const fallback = getDefaultPriorityScaleConfig();
-  const scoreInput = Array.isArray(inputConfig?.scoreOptions)
+  // Migration: old v1 config had a single scoreOptions shared for all fields
+  const legacy = Array.isArray(inputConfig?.scoreOptions) && inputConfig.scoreOptions.length > 0
     ? inputConfig.scoreOptions
-    : fallback.scoreOptions;
+    : null;
+
+  const benefitInput = Array.isArray(inputConfig?.benefitScoreOptions) && inputConfig.benefitScoreOptions.length > 0
+    ? inputConfig.benefitScoreOptions
+    : legacy || fallback.benefitScoreOptions;
+  const urgencyInput = Array.isArray(inputConfig?.urgencyScoreOptions) && inputConfig.urgencyScoreOptions.length > 0
+    ? inputConfig.urgencyScoreOptions
+    : legacy || fallback.urgencyScoreOptions;
+  const ambitionInput = Array.isArray(inputConfig?.ambitionScoreOptions) && inputConfig.ambitionScoreOptions.length > 0
+    ? inputConfig.ambitionScoreOptions
+    : legacy || fallback.ambitionScoreOptions;
 
   return {
-    version: 1,
-    scoreOptions: scoreInput.map(normalizeScaleOption)
+    version: 2,
+    benefitScoreOptions: benefitInput.map(normalizeScaleOption),
+    urgencyScoreOptions: urgencyInput.map(normalizeScaleOption),
+    ambitionScoreOptions: ambitionInput.map(normalizeScaleOption)
   };
 }
 
@@ -549,7 +565,11 @@ function validateScaleOptions(options, listName) {
 }
 
 function validateScaleConfig(config) {
-  return validateScaleOptions(config.scoreOptions, 'scoreOptions');
+  return (
+    validateScaleOptions(config.benefitScoreOptions, 'benefitScoreOptions') ||
+    validateScaleOptions(config.urgencyScoreOptions, 'urgencyScoreOptions') ||
+    validateScaleOptions(config.ambitionScoreOptions, 'ambitionScoreOptions')
+  );
 }
 
 async function getStoredPriorityScaleConfig() {
@@ -584,11 +604,10 @@ async function ensurePriorityScaleConfigExists() {
 
 async function getScaleDefaultValues() {
   const config = await ensurePriorityScaleConfigExists();
-  const defaultValue = Number(config?.scoreOptions?.[0]?.value) || 1;
   return {
-    benefitDefault: defaultValue,
-    urgencyDefault: defaultValue,
-    ambitionDefault: defaultValue
+    benefitDefault: Number(config?.benefitScoreOptions?.[0]?.value) || 1,
+    urgencyDefault: Number(config?.urgencyScoreOptions?.[0]?.value) || 1,
+    ambitionDefault: Number(config?.ambitionScoreOptions?.[0]?.value) || 1
   };
 }
 

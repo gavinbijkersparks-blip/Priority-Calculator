@@ -196,7 +196,9 @@ function App() {
   const [showBenefitExplanation, setShowBenefitExplanation] = useState(false);
   const [showUrgencyExplanation, setShowUrgencyExplanation] = useState(false);
   const [showAmbitionExplanation, setShowAmbitionExplanation] = useState(false);
-  const [scoreOptions, setScoreOptions] = useState(DEFAULT_SCALE_OPTIONS);
+  const [benefitScoreOptions, setBenefitScoreOptions] = useState(DEFAULT_SCALE_OPTIONS);
+  const [urgencyScoreOptions, setUrgencyScoreOptions] = useState(DEFAULT_SCALE_OPTIONS);
+  const [ambitionScoreOptions, setAmbitionScoreOptions] = useState(DEFAULT_SCALE_OPTIONS);
   const [thresholds, setThresholds] = useState(DEFAULT_THRESHOLDS);
 
   const [loading, setLoading] = useState(true);
@@ -301,8 +303,12 @@ function App() {
 
       if (scaleResult?.success) {
         const config = scaleResult.config || {};
-        const next = normalizeScaleOptions(config.scoreOptions, DEFAULT_SCALE_OPTIONS);
-        setScoreOptions(next.length > 0 ? next : DEFAULT_SCALE_OPTIONS);
+        const nextBenefit = normalizeScaleOptions(config.benefitScoreOptions, DEFAULT_SCALE_OPTIONS);
+        const nextUrgency = normalizeScaleOptions(config.urgencyScoreOptions, DEFAULT_SCALE_OPTIONS);
+        const nextAmbition = normalizeScaleOptions(config.ambitionScoreOptions, DEFAULT_SCALE_OPTIONS);
+        setBenefitScoreOptions(nextBenefit.length > 0 ? nextBenefit : DEFAULT_SCALE_OPTIONS);
+        setUrgencyScoreOptions(nextUrgency.length > 0 ? nextUrgency : DEFAULT_SCALE_OPTIONS);
+        setAmbitionScoreOptions(nextAmbition.length > 0 ? nextAmbition : DEFAULT_SCALE_OPTIONS);
       }
 
       if (thresholdResult?.success) {
@@ -458,23 +464,31 @@ function App() {
             ? `${strings.savedAt} ${formatTime(lastSavedAt, language)}`
             : strings.notSavedYet;
 
-  const safeScoreOptions = useMemo(
-    () => ensureOptionInList(
-      ensureOptionInList(ensureOptionInList(scoreOptions, benefitScore, strings.customValue), urgencyScore, strings.customValue),
-      ambitionScore,
-      strings.customValue
-    ),
-    [scoreOptions, benefitScore, urgencyScore, ambitionScore, strings.customValue]
+  const safeBenefitOptions = useMemo(
+    () => ensureOptionInList(benefitScoreOptions, benefitScore, strings.customValue),
+    [benefitScoreOptions, benefitScore, strings.customValue]
+  );
+
+  const safeUrgencyOptions = useMemo(
+    () => ensureOptionInList(urgencyScoreOptions, urgencyScore, strings.customValue),
+    [urgencyScoreOptions, urgencyScore, strings.customValue]
+  );
+
+  const safeAmbitionOptions = useMemo(
+    () => ensureOptionInList(ambitionScoreOptions, ambitionScore, strings.customValue),
+    [ambitionScoreOptions, ambitionScore, strings.customValue]
   );
 
   const presets = useMemo(() => {
-    const preset = getPresetValueSet(safeScoreOptions);
+    const benefitPreset = getPresetValueSet(safeBenefitOptions);
+    const urgencyPreset = getPresetValueSet(safeUrgencyOptions);
+    const ambitionPreset = getPresetValueSet(safeAmbitionOptions);
     return [
-      { key: 'lowPriority', benefit: preset.low, urgency: preset.low, ambition: preset.low },
-      { key: 'mediumPriority', benefit: preset.medium, urgency: preset.medium, ambition: preset.medium },
-      { key: 'highPriority', benefit: preset.high, urgency: preset.high, ambition: preset.high }
+      { key: 'lowPriority', benefit: benefitPreset.low, urgency: urgencyPreset.low, ambition: ambitionPreset.low },
+      { key: 'mediumPriority', benefit: benefitPreset.medium, urgency: urgencyPreset.medium, ambition: ambitionPreset.medium },
+      { key: 'highPriority', benefit: benefitPreset.high, urgency: urgencyPreset.high, ambition: ambitionPreset.high }
     ];
-  }, [safeScoreOptions]);
+  }, [safeBenefitOptions, safeUrgencyOptions, safeAmbitionOptions]);
 
   const activePreset =
     presets.find(
@@ -552,7 +566,7 @@ function App() {
                 </button>
               </span>
               <select value={benefitScore} onChange={(event) => setBenefitScore(Number(event.target.value))}>
-                {safeScoreOptions.map((option) => (
+                {safeBenefitOptions.map((option) => (
                   <option key={`benefit-${option.value}`} value={option.value}>
                     {option.value} - {getOptionLabel(option, language)}
                   </option>
@@ -578,7 +592,7 @@ function App() {
                 </button>
               </span>
               <select value={urgencyScore} onChange={(event) => setUrgencyScore(Number(event.target.value))}>
-                {safeScoreOptions.map((option) => (
+                {safeUrgencyOptions.map((option) => (
                   <option key={`urgency-${option.value}`} value={option.value}>
                     {option.value} - {getOptionLabel(option, language)}
                   </option>
@@ -604,7 +618,7 @@ function App() {
                 </button>
               </span>
               <select value={ambitionScore} onChange={(event) => setAmbitionScore(Number(event.target.value))}>
-                {safeScoreOptions.map((option) => (
+                {safeAmbitionOptions.map((option) => (
                   <option key={`ambition-${option.value}`} value={option.value}>
                     {option.value} - {getOptionLabel(option, language)}
                   </option>

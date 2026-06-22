@@ -48,7 +48,7 @@ const I18N = {
     defaultFieldsCreatedAndMapped: 'Default fields created and mapped',
 
     scaleOptionsTitle: 'Score Scale Options',
-    scaleOptionsSubtitle: 'Configure the shared score options used for opbrengst, urgentie and ambitie.',
+    scaleOptionsSubtitle: 'Configure score options per field. Each field (opbrengst, urgentie, ambitie) can have its own scale.',
     loadingScaleConfig: 'Loading scale options…',
     scaleConfigSaved: 'Scale options saved.',
     scaleConfigSaveFailed: 'Failed to save scale options.',
@@ -65,6 +65,9 @@ const I18N = {
     moveDown: 'Down',
     saveScaleOptions: 'Save scale options',
     savingScaleOptions: 'Saving scale options…',
+    benefitScaleTab: 'Opbrengst',
+    urgencyScaleTab: 'Urgentie',
+    ambitionScaleTab: 'Ambitie',
 
     thresholdTitle: 'MoSCoW Thresholds',
     thresholdSubtitle: 'Set thresholds for Must, Should and Could. Values below Could become Won\'t.',
@@ -150,7 +153,7 @@ const I18N = {
     defaultFieldsCreatedAndMapped: 'Standaardvelden gemaakt en gekoppeld',
 
     scaleOptionsTitle: 'Score-schaalopties',
-    scaleOptionsSubtitle: 'Configureer de gedeelde score-opties voor opbrengst, urgentie en ambitie.',
+    scaleOptionsSubtitle: 'Configureer score-opties per veld. Elk veld (opbrengst, urgentie, ambitie) heeft zijn eigen schaal.',
     loadingScaleConfig: 'Schaalopties laden…',
     scaleConfigSaved: 'Schaalopties opgeslagen.',
     scaleConfigSaveFailed: 'Schaalopties opslaan mislukt.',
@@ -167,6 +170,9 @@ const I18N = {
     moveDown: 'Omlaag',
     saveScaleOptions: 'Schaalopties opslaan',
     savingScaleOptions: 'Schaalopties opslaan…',
+    benefitScaleTab: 'Opbrengst',
+    urgencyScaleTab: 'Urgentie',
+    ambitionScaleTab: 'Ambitie',
 
     thresholdTitle: 'MoSCoW-drempels',
     thresholdSubtitle: 'Stel drempels in voor Must, Should en Could. Onder Could wordt Won\'t.',
@@ -309,7 +315,10 @@ function App() {
   const [scaleSaving, setScaleSaving] = useState(false);
   const [scaleMessage, setScaleMessage] = useState('');
   const [scaleError, setScaleError] = useState('');
-  const [scoreOptions, setScoreOptions] = useState([]);
+  const [benefitScoreOptions, setBenefitScoreOptions] = useState([]);
+  const [urgencyScoreOptions, setUrgencyScoreOptions] = useState([]);
+  const [ambitionScoreOptions, setAmbitionScoreOptions] = useState([]);
+  const [activeScaleTab, setActiveScaleTab] = useState('benefit');
 
   const [thresholdLoading, setThresholdLoading] = useState(true);
   const [thresholdSaving, setThresholdSaving] = useState(false);
@@ -399,7 +408,10 @@ function App() {
     try {
       const result = await invoke('getPriorityScaleConfig');
       if (!result?.success) throw new Error(result?.error || strings.loadingScaleConfig);
-      setScoreOptions((result.config?.scoreOptions || []).map(normalizeScaleOption));
+      const config = result.config || {};
+      setBenefitScoreOptions((config.benefitScoreOptions || []).map(normalizeScaleOption));
+      setUrgencyScoreOptions((config.urgencyScoreOptions || []).map(normalizeScaleOption));
+      setAmbitionScoreOptions((config.ambitionScoreOptions || []).map(normalizeScaleOption));
     } catch (error) {
       setScaleError(`${strings.loadError}: ${error.message}`);
     } finally {
@@ -521,8 +533,14 @@ function App() {
     }
   };
 
-  const updateScaleOption = (index, key, value) => {
-    setScoreOptions((current) =>
+  const getSetterForField = (field) => {
+    if (field === 'benefit') return setBenefitScoreOptions;
+    if (field === 'urgency') return setUrgencyScoreOptions;
+    return setAmbitionScoreOptions;
+  };
+
+  const updateScaleOption = (field, index, key, value) => {
+    getSetterForField(field)((current) =>
       current.map((item, itemIndex) => {
         if (itemIndex !== index) return item;
         if (key === 'value') return { ...item, value };
@@ -532,12 +550,12 @@ function App() {
     );
   };
 
-  const removeScaleOption = (index) => {
-    setScoreOptions((current) => current.filter((_item, itemIndex) => itemIndex !== index));
+  const removeScaleOption = (field, index) => {
+    getSetterForField(field)((current) => current.filter((_item, itemIndex) => itemIndex !== index));
   };
 
-  const moveScaleOption = (index, direction) => {
-    setScoreOptions((current) => {
+  const moveScaleOption = (field, index, direction) => {
+    getSetterForField(field)((current) => {
       const nextIndex = index + direction;
       if (nextIndex < 0 || nextIndex >= current.length) return current;
       const next = [...current];
@@ -546,6 +564,16 @@ function App() {
     });
   };
 
+  const serializeOptions = (options) =>
+    options.map((item) => ({
+      value: Number(item.value),
+      labelDefault: getDerivedDefaultLabel(item),
+      labels: {
+        en: String(item?.labels?.en || '').trim(),
+        nl: String(item?.labels?.nl || '').trim()
+      }
+    }));
+
   const handleSaveScaleConfig = async () => {
     setScaleSaving(true);
     setScaleMessage('');
@@ -553,14 +581,9 @@ function App() {
 
     try {
       const payload = {
-        scoreOptions: scoreOptions.map((item) => ({
-          value: Number(item.value),
-          labelDefault: getDerivedDefaultLabel(item),
-          labels: {
-            en: String(item?.labels?.en || '').trim(),
-            nl: String(item?.labels?.nl || '').trim()
-          }
-        }))
+        benefitScoreOptions: serializeOptions(benefitScoreOptions),
+        urgencyScoreOptions: serializeOptions(urgencyScoreOptions),
+        ambitionScoreOptions: serializeOptions(ambitionScoreOptions)
       };
 
       const result = await invoke('savePriorityScaleConfig', { config: payload });
@@ -569,7 +592,10 @@ function App() {
         return;
       }
 
-      setScoreOptions((result.config?.scoreOptions || []).map(normalizeScaleOption));
+      const config = result.config || {};
+      setBenefitScoreOptions((config.benefitScoreOptions || []).map(normalizeScaleOption));
+      setUrgencyScoreOptions((config.urgencyScoreOptions || []).map(normalizeScaleOption));
+      setAmbitionScoreOptions((config.ambitionScoreOptions || []).map(normalizeScaleOption));
       setScaleMessage(strings.scaleConfigSaved);
     } catch (error) {
       setScaleError(`${strings.saveError}: ${error.message}`);
@@ -590,7 +616,10 @@ function App() {
         return;
       }
 
-      setScoreOptions((result.config?.scoreOptions || []).map(normalizeScaleOption));
+      const config = result.config || {};
+      setBenefitScoreOptions((config.benefitScoreOptions || []).map(normalizeScaleOption));
+      setUrgencyScoreOptions((config.urgencyScoreOptions || []).map(normalizeScaleOption));
+      setAmbitionScoreOptions((config.ambitionScoreOptions || []).map(normalizeScaleOption));
       setScaleMessage(strings.resetScaleOptionsDone);
     } catch (error) {
       setScaleError(`${strings.saveError}: ${error.message}`);
@@ -820,70 +849,91 @@ function App() {
           <p className="muted">{strings.loadingScaleConfig}</p>
         ) : (
           <>
-            <div className="scale-col">
-              <div className="summary-title">{strings.scoreOptions}</div>
-              <div className="scale-list">
-                {scoreOptions.map((item, index) => (
-                  <div className="scale-row" key={`score-${index}`}>
-                    <div className="scale-field">
-                      <span className="scale-field-label">{strings.value}</span>
-                      <input
-                        type="number"
-                        className="scale-input value"
-                        value={item.value}
-                        onChange={(event) => updateScaleOption(index, 'value', event.target.value)}
-                        placeholder={strings.value}
-                      />
-                    </div>
-                    <div className="scale-field">
-                      <span className="scale-field-label">{strings.defaultLabel}</span>
-                      <input
-                        type="text"
-                        className="scale-input label readonly"
-                        value={getDerivedDefaultLabel(item)}
-                        readOnly
-                        aria-readonly="true"
-                        placeholder={strings.defaultLabel}
-                      />
-                    </div>
-                    <div className="scale-field">
-                      <span className="scale-field-label">{strings.englishLabel}</span>
-                      <input
-                        type="text"
-                        className="scale-input"
-                        value={item.labels.en}
-                        onChange={(event) => updateScaleOption(index, 'en', event.target.value)}
-                        placeholder={strings.englishLabel}
-                      />
-                    </div>
-                    <div className="scale-field">
-                      <span className="scale-field-label">{strings.dutchLabel}</span>
-                      <input
-                        type="text"
-                        className="scale-input"
-                        value={item.labels.nl}
-                        onChange={(event) => updateScaleOption(index, 'nl', event.target.value)}
-                        placeholder={strings.dutchLabel}
-                      />
-                    </div>
-                    <div className="scale-row-actions">
-                      <button type="button" className="inline-link" onClick={() => moveScaleOption(index, -1)}>
-                        {strings.moveUp}
-                      </button>
-                      <button type="button" className="inline-link" onClick={() => moveScaleOption(index, 1)}>
-                        {strings.moveDown}
-                      </button>
-                      <button type="button" className="inline-link danger" onClick={() => removeScaleOption(index)}>
-                        {strings.remove}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button appearance="subtle" onClick={() => setScoreOptions((current) => [...current, buildEmptyScaleOption()])}>
-                {strings.addOption}
-              </Button>
+            <div className="scale-tabs">
+              {[
+                { key: 'benefit', label: strings.benefitScaleTab, options: benefitScoreOptions, setter: setBenefitScoreOptions },
+                { key: 'urgency', label: strings.urgencyScaleTab, options: urgencyScoreOptions, setter: setUrgencyScoreOptions },
+                { key: 'ambition', label: strings.ambitionScaleTab, options: ambitionScoreOptions, setter: setAmbitionScoreOptions }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`scale-tab-btn${activeScaleTab === tab.key ? ' active' : ''}`}
+                  onClick={() => setActiveScaleTab(tab.key)}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
+            {[
+              { key: 'benefit', options: benefitScoreOptions, setter: setBenefitScoreOptions },
+              { key: 'urgency', options: urgencyScoreOptions, setter: setUrgencyScoreOptions },
+              { key: 'ambition', options: ambitionScoreOptions, setter: setAmbitionScoreOptions }
+            ].filter((tab) => tab.key === activeScaleTab).map((tab) => (
+              <div className="scale-col" key={tab.key}>
+                <div className="scale-list">
+                  {tab.options.map((item, index) => (
+                    <div className="scale-row" key={`${tab.key}-score-${index}`}>
+                      <div className="scale-field">
+                        <span className="scale-field-label">{strings.value}</span>
+                        <input
+                          type="number"
+                          className="scale-input value"
+                          value={item.value}
+                          onChange={(event) => updateScaleOption(tab.key, index, 'value', event.target.value)}
+                          placeholder={strings.value}
+                        />
+                      </div>
+                      <div className="scale-field">
+                        <span className="scale-field-label">{strings.defaultLabel}</span>
+                        <input
+                          type="text"
+                          className="scale-input label readonly"
+                          value={getDerivedDefaultLabel(item)}
+                          readOnly
+                          aria-readonly="true"
+                          placeholder={strings.defaultLabel}
+                        />
+                      </div>
+                      <div className="scale-field">
+                        <span className="scale-field-label">{strings.englishLabel}</span>
+                        <input
+                          type="text"
+                          className="scale-input"
+                          value={item.labels.en}
+                          onChange={(event) => updateScaleOption(tab.key, index, 'en', event.target.value)}
+                          placeholder={strings.englishLabel}
+                        />
+                      </div>
+                      <div className="scale-field">
+                        <span className="scale-field-label">{strings.dutchLabel}</span>
+                        <input
+                          type="text"
+                          className="scale-input"
+                          value={item.labels.nl}
+                          onChange={(event) => updateScaleOption(tab.key, index, 'nl', event.target.value)}
+                          placeholder={strings.dutchLabel}
+                        />
+                      </div>
+                      <div className="scale-row-actions">
+                        <button type="button" className="inline-link" onClick={() => moveScaleOption(tab.key, index, -1)}>
+                          {strings.moveUp}
+                        </button>
+                        <button type="button" className="inline-link" onClick={() => moveScaleOption(tab.key, index, 1)}>
+                          {strings.moveDown}
+                        </button>
+                        <button type="button" className="inline-link danger" onClick={() => removeScaleOption(tab.key, index)}>
+                          {strings.remove}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button appearance="subtle" onClick={() => tab.setter((current) => [...current, buildEmptyScaleOption()])}>
+                  {strings.addOption}
+                </Button>
+              </div>
+            ))}
           </>
         )}
 
